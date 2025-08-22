@@ -1,0 +1,97 @@
+# ======================================
+# Python
+# ======================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+
+# ======================================
+# Virtual Environment
+# ======================================
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ======================================
+# Django / Database
+# ======================================
+*.sqlite3
+*.db
+*.db-journal
+
+# ======================================
+# Django Migrations (ignore compiled pyc, keep migration .py)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+
+# ======================================
+# Static & Media (ignore collected & uploaded files)
+# ======================================
+/staticfiles/
+/static/
+/media/
+
+# ======================================
+# Logs & Runtime
+# ======================================
+*.log
+*.pot
+*.mo
+*.pid
+*.seed
+*.coverage
+*.cover
+*.py,cover
+coverage.xml
+nosetests.xml
+test-results.xml
+htmlcov/
+
+# ======================================
+# IDE & Editors
+# ======================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ======================================
+# OS Generated
+# ======================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ======================================
+# Environment & Secrets
+# ======================================
+.env
+.env.*
+*.env
+*.ini
+*.cfg
+*.json
+*.yaml
+*.yml
+
+# ======================================
+# Docker
+# ======================================
+*.pid
+*.tar
+*.bak
+*.tmp
+*.swp
+docker-compose.override.yml
