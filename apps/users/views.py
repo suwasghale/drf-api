@@ -43,5 +43,20 @@ class LoginViewSet(viewsets.ViewSet):
 
         user = authenticate(username=username, password=password)
         if user:
-            return Response(UserSerializer(user).data)
-        return Response({"detail": "Invalid credentials"}, status=401)
+            user_data = UserSerializer(user).data
+            # Remove password from response if serializer didn't already
+            user_data.pop('password', None)
+            return Response(
+                {
+                    "status": "success",
+                    "message": "User logged in successfully",
+                    "user": user_data,
+                },
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {"status": "error", 
+             "message": "Invalid credentials"
+             },
+            status=status.HTTP_401_UNAUTHORIZED
+        )
