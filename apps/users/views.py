@@ -2,10 +2,9 @@ from rest_framework import viewsets, status, throttling
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.urls import reverse
 from django.conf import settings
-from django.contrib.auth import authenticate, login
 from django.utils import timezone
 
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
@@ -173,3 +172,11 @@ class UserViewSet(viewsets.ViewSet):
         user = request.user
         user.delete()
         return Response({"status": "success", "message": "Account deleted"})
+
+
+    @action(detail=True, methods=['post'], url_path='activate')
+    def activate_user(self, request, pk=None):
+        user = self.get_object()  # DRF fetches the user with id=pk
+        user.is_active = True
+        user.save()
+        return Response({"status": "success", "message": "User activated"})
