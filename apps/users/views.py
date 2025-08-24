@@ -7,6 +7,8 @@ from .models import User
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
 from django.contrib.auth import authenticate
 
+from django.utils import timezone
+
 # Create your views here.
 # List and Detail Read Only
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,6 +45,9 @@ class LoginViewSet(viewsets.ViewSet):
 
         user = authenticate(username=username, password=password)
         if user:
+            # manually update last login
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
             user_data = UserSerializer(user).data
             # Remove password from response if serializer didn't already
             user_data.pop('password', None)
