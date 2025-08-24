@@ -146,3 +146,30 @@ class UserViewSet(viewsets.ViewSet):
             "is_email_verified": user.is_email_verified,
             "last_login": user.last_login
         })
+       # ---------------- Logout ----------------
+    @action(detail=False, methods=['post'], url_path='logout', permission_classes=[IsAuthenticated])
+    def logout(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({"status": "error", "message": "Refresh token required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"status": "success", "message": "Logged out successfully"})
+        except Exception:
+            return Response({"status": "error", "message": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # ---------------- Deactivate ----------------
+    @action(detail=False, methods=['post'], url_path='deactivate', permission_classes=[IsAuthenticated])
+    def deactivate(self, request):
+        user = request.user
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+        return Response({"status": "success", "message": "Account deactivated"})
+
+    # ---------------- Delete ----------------
+    @action(detail=False, methods=['delete'], url_path='delete', permission_classes=[IsAuthenticated])
+    def delete_account(self, request):
+        user = request.user
+        user.delete()
+        return Response({"status": "success", "message": "Account deleted"})
