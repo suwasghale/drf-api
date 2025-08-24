@@ -1,19 +1,28 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, throttling
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.auth import authenticate, login
+from django.utils import timezone
 
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.backends import TokenBackend
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from .utils.email import send_verification_email
 
 User = get_user_model()
+
+class LoginRateThrottle(throttling.UserRateThrottle):
+    rate = '5/min'  # 5 login attempts per minute
+
+
+class EmailVerifyThrottle(throttling.UserRateThrottle):
+    rate = '3/min'  # 3 email verifications per minute
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -54,7 +63,7 @@ class UserViewSet(viewsets.ViewSet):
     # ------------------------
     # Email verification
     # ------------------------
-    @action(detail=False, methods=['get'], url_path='verify-email', permission_classes=[AllowAny])
+    @action(detail=False, methods=['get'], url_path='verify-email', permission_classes=[AllowAny], throttle_classes = [EmailVerifyThrottle] )
     def verify_email(self, request):
         token = request.query_params.get('token')
         if not token:
@@ -88,17 +97,52 @@ class UserViewSet(viewsets.ViewSet):
             return Response({"status": "error", "message": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # ---------------- Login ----------------
+    @action(detail=False, methods=['post'], url_path='login', permission_classes=[AllowAny], throttle_classes=[LoginRateThrottle])
+    def login(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+
+        user = authenticate(username=username, password=password)
+        if not user:
+            return Response({"status": "error", "message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        if not user.is_active:
+            return Response({"status": "error", "message": "Account deactivated"}, status=status.HTTP_403_FORBIDDEN)
+
+        refresh = RefreshToken.for_user(user)
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+
+        return Response({
+            "status": "success",
+            "message": "Logged in successfully",
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "is_email_verified": user.is_email_verified,
+            },
+            "tokens":{
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            }
+         
+        })
+
 
     # ------------------------
     # "Me" profile
     # ------------------------
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='me')
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def me(self, request):
-        from rest_framework.serializers import ModelSerializer
-
-        class UserSerializer(ModelSerializer):
-            class Meta:
-                model = User
-                fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_email_verified', 'last_login']
-
-        return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+        user = request.user
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_email_verified": user.is_email_verified,
+            "last_login": user.last_login
+        })
