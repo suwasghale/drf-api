@@ -25,5 +25,5 @@ class UserActivityLog(models.Model):
 
 class PasswordHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_history')
-    password = models.CharField(max_length=128)
+    password_hash = models.CharField(max_length=128)
     timestamp = models.DateTimeField(auto_now_add=True)
