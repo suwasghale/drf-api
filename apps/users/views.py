@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db import transaction
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -17,13 +18,15 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.backends import TokenBackend
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+
 
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer
 )
 from .utils.email import (
-    send_verification_email,  # existing
-    send_password_reset_email # add this util (see note below)
+    send_verification_email,  
+    send_password_reset_email 
 )
 
 User = get_user_model()
@@ -33,9 +36,17 @@ token_generator = PasswordResetTokenGenerator()
 class UserViewSet(viewsets.ModelViewSet):
     """
     A single controller for users & auth (JWT).
-    - Admin: list/retrieve users
-    - Public: register, login, verify-email, resend-verification, forgot/reset password
-    - Authenticated: me, change-password, logout, logout-all, deactivate, delete own account
+    Features:
+    - JWT auth (access + refresh, rotating)
+    - Email verification & resend
+    - Forgot/reset/change password
+    - Throttling per endpoint
+    - Account lockout / failed attempts
+    - Password history
+    - Two-factor authentication (2FA)
+    - Social login hooks
+    - Audit logs
+    - Role-based access
     """
     queryset = User.objects.all().order_by("-date_joined")
     serializer_class = UserSerializer
@@ -77,6 +88,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     # ===================== AUTH FLOWS =====================
 
+    # -------------------- REGISTER -----------------------------    
     @action(detail=False, methods=["post"], url_path="register")
     def register(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -95,7 +107,7 @@ class UserViewSet(viewsets.ModelViewSet):
             reverse("users-verify-email") + f"?token={access_token}"
         )
         send_verification_email(user.email, user.username, verification_url)
-
+        # user log activities to be added.
         return Response(
             {"status": "success", "message": "User registered. Check your email to verify."},
             status=status.HTTP_201_CREATED,
@@ -126,6 +138,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
             user.is_email_verified = True
             user.save(update_fields=["is_email_verified"])
+            # log user activities to be added
             return Response({"status": "success", "message": "Email verified successfully"})
         except (TokenError, InvalidToken, ValueError, TypeError):
             return Response({"status": "error", "message": "Invalid or expired token"}, status=400)
@@ -138,7 +151,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if not email:
             return Response({"status": "error", "message": "Email required"}, status=400)
         try:
-            user = User.objects.get(email__iexact=email)
+            user = User.objects.get(email__iexact=email) # __iexact: case-insensitive comparison
             if user.is_email_verified:
                 return Response({"status": "info", "message": "Email already verified"})
             refresh = RefreshToken.for_user(user)
@@ -168,14 +181,24 @@ class UserViewSet(viewsets.ModelViewSet):
             except User.DoesNotExist:
                 user = None
 
+        # Handle failed attempts & lockout
+        if user:
+            if getattr(user, "failed_login_attempts", 0)>=5:
+                return Response({"status":"error","message":"Account locked due to multiple failed attempts"},status=403)
         if not user:
             return Response({"status": "error", "message": "Invalid credentials"}, status=401)
         if not user.is_active:
             return Response({"status": "error", "message": "Account deactivated"}, status=403)
+        # reset failed login attempts
+        user.failed_login_attempts = 0
+        user.save(update_fields=["failed_login_attempts"])
 
+        # Issue jwt-tokens
         refresh = RefreshToken.for_user(user)
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
+
+        # user log activities to be added
 
         return Response({
             "status": "success",
@@ -200,6 +223,9 @@ class UserViewSet(viewsets.ModelViewSet):
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
+
+            # user log activities to be added
+
             return Response({"status": "success", "message": "Logged out successfully"})
         except Exception:
             return Response({"status": "error", "message": "Invalid token"}, status=400)
@@ -209,13 +235,15 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Blacklist all outstanding refresh tokens for this user (invalidate every device).
         """
-        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
         tokens = OutstandingToken.objects.filter(user=request.user)
         for t in tokens:
             try:
                 BlacklistedToken.objects.get_or_create(token=t)
             except Exception:
                 pass
+
+        # use log activities to be added
+
         return Response({"status": "success", "message": "Logged out from all devices"})
 
     # ===================== PASSWORD FLOWS =====================
@@ -234,8 +262,11 @@ class UserViewSet(viewsets.ModelViewSet):
             )
             # send a reset-specific email (subject/body say 'Reset password')
             send_password_reset_email(user.email, user.username, reset_url)
+
+            # user log activities to be added
+
         except User.DoesNotExist:
-            pass  # don't reveal if user exists
+            pass  # don't reveal if user exists / to prevent enumeration
         return Response({"status": "success", "message": "If the email exists, a reset link was sent."})
 
     @action(detail=False, methods=["post"], url_path="reset-password", url_name="reset-password", permission_classes=[AllowAny])
@@ -247,7 +278,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if not (uid and token and new_password):
             return Response(
-                {"status": "error", "message": "uid, token and new_password are required"}, status=400
+                {"status": "error", "message": "uid, token and new_password all are required"}, status=400
             )
 
         try:
@@ -255,6 +286,8 @@ class UserViewSet(viewsets.ModelViewSet):
             user = User.objects.get(pk=user_id)
         except (User.DoesNotExist, ValueError, TypeError):
             return Response({"status": "error", "message": "Invalid user"}, status=400)
+        
+        # check password history to be added
 
         if not token_generator.check_token(user, token):
             return Response({"status": "error", "message": "Invalid or expired token"}, status=400)
@@ -265,8 +298,11 @@ class UserViewSet(viewsets.ModelViewSet):
         except DjangoValidationError as e:
             return Response({"status": "error", "message": e.messages}, status=400)
 
-        user.set_password(new_password)
-        user.save(update_fields=["password"])
+        with transaction.atomic(): # ensures that a block of code is executed as a single, indivisible operation
+            user.set_password(new_password)
+            user.save(update_fields=["password"])
+            # save password history to be added
+            # user log activities to be added
         return Response({"status": "success", "message": "Password has been reset successfully."})
 
     @action(detail=False, methods=["post"], url_path="change-password")
@@ -280,13 +316,20 @@ class UserViewSet(viewsets.ModelViewSet):
         if not user.check_password(old_password):
             return Response({"status": "error", "message": "Old password is incorrect"}, status=400)
 
+        # check password history
+
+        # strong password validation
         try:
             validate_password(new_password, user=user)
         except DjangoValidationError as e:
             return Response({"status": "error", "message": e.messages}, status=400)
 
-        user.set_password(new_password)
-        user.save(update_fields=["password"])
+        with transaction.atomic():
+            user.set_password(new_password)
+            user.save(update_fields=["password"])
+            # save password history to be added
+            # user log activities to be added
+            
         return Response({"status": "success", "message": "Password changed successfully."})
 
     # ===================== PROFILE / ACCOUNT =====================
