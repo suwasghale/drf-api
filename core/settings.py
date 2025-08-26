@@ -69,6 +69,21 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 2,
 
 }
+REST_FRAMEWORK.update({
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "50/min",
+        "user": "200/min",
+        "login": "5/min",
+        "email_verify": "3/min",
+        "forgot_password": "3/min",
+    },
+})
+
 # simple jwt
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
