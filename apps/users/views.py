@@ -24,10 +24,13 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer
 )
+
 from .utils.email import (
     send_verification_email,  
     send_password_reset_email 
 )
+
+from .utils.audit import log_user_activity
 
 User = get_user_model()
 token_generator = PasswordResetTokenGenerator()
@@ -64,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAdminUser()]
         if self.action in [
             "register", "login", "verify_email",
-            "resend_verification", "forgot_password", "reset_password"
+            "resend_verification", "change_password", "forgot_password", "reset_password", "logout", "logout_all"
         ]:
             return [AllowAny()]
         # everything else requires login
@@ -107,7 +110,9 @@ class UserViewSet(viewsets.ModelViewSet):
             reverse("users-verify-email") + f"?token={access_token}"
         )
         send_verification_email(user.email, user.username, verification_url)
-        # user log activities to be added.
+        # user log activity
+        log_user_activity(user, 'register')
+
         return Response(
             {"status": "success", "message": "User registered. Check your email to verify."},
             status=status.HTTP_201_CREATED,
@@ -138,7 +143,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
             user.is_email_verified = True
             user.save(update_fields=["is_email_verified"])
-            # log user activities to be added
+            # user log activity
+            log_user_activity(user, 'verify_email')
+            
             return Response({"status": "success", "message": "Email verified successfully"})
         except (TokenError, InvalidToken, ValueError, TypeError):
             return Response({"status": "error", "message": "Invalid or expired token"}, status=400)
@@ -160,6 +167,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 reverse("users-verify-email") + f"?token={access_token}"
             )
             send_verification_email(user.email, user.username, verification_url)
+            # user log activity
+            log_user_activity(user, 'resend_verification')
+
         except User.DoesNotExist:
             pass  # don't leak registered emails
         return Response({"status": "success", "message": "If the email exists, a verification link was sent."})
@@ -198,7 +208,8 @@ class UserViewSet(viewsets.ModelViewSet):
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
 
-        # user log activities to be added
+        # user log activity
+        log_user_activity(user,"login" )
 
         return Response({
             "status": "success",
@@ -224,7 +235,8 @@ class UserViewSet(viewsets.ModelViewSet):
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            # user log activities to be added
+            # user log activity
+            log_user_activity(request.user, "logout" )
 
             return Response({"status": "success", "message": "Logged out successfully"})
         except Exception:
@@ -242,7 +254,8 @@ class UserViewSet(viewsets.ModelViewSet):
             except Exception:
                 pass
 
-        # use log activities to be added
+        # use log activity
+        log_user_activity(request.user, "logout_all")
 
         return Response({"status": "success", "message": "Logged out from all devices"})
 
@@ -263,7 +276,8 @@ class UserViewSet(viewsets.ModelViewSet):
             # send a reset-specific email (subject/body say 'Reset password')
             send_password_reset_email(user.email, user.username, reset_url)
 
-            # user log activities to be added
+            # user log activity
+            log_user_activity(user, 'forgot_password')
 
         except User.DoesNotExist:
             pass  # don't reveal if user exists / to prevent enumeration
@@ -302,7 +316,9 @@ class UserViewSet(viewsets.ModelViewSet):
             user.set_password(new_password)
             user.save(update_fields=["password"])
             # save password history to be added
-            # user log activities to be added
+
+            # user log activity
+            log_user_activity(user, 'reset_password')
         return Response({"status": "success", "message": "Password has been reset successfully."})
 
     @action(detail=False, methods=["post"], url_path="change-password")
@@ -328,8 +344,9 @@ class UserViewSet(viewsets.ModelViewSet):
             user.set_password(new_password)
             user.save(update_fields=["password"])
             # save password history to be added
-            # user log activities to be added
-            
+            # user log activity
+            log_user_activity(user, 'change_password')
+
         return Response({"status": "success", "message": "Password changed successfully."})
 
     # ===================== PROFILE / ACCOUNT =====================
