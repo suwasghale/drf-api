@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.db import transaction
-from django.contrib.auth import get_user_model, authenticate
+from django.urls import reverse
+from django.core.exceptions import ValidationError as DjangoValidationError
+
+from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.urls import reverse
+
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -18,11 +20,16 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.backends import TokenBackend
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.token_blacklist.models import (
+    OutstandingToken, 
+    BlacklistedToken
+    )
 
 
 from .serializers import (
-    RegisterSerializer, LoginSerializer, UserSerializer
+    RegisterSerializer, 
+    LoginSerializer, 
+    UserSerializer
 )
 
 from .utils.email import (
@@ -31,6 +38,11 @@ from .utils.email import (
 )
 
 from .utils.audit import log_user_activity
+
+from .utils.password_history import (
+    save_password_history, 
+    check_password_history
+)
 
 User = get_user_model()
 token_generator = PasswordResetTokenGenerator()
@@ -239,7 +251,8 @@ class UserViewSet(viewsets.ModelViewSet):
             log_user_activity(request.user, "logout" )
 
             return Response({"status": "success", "message": "Logged out successfully"})
-        except Exception:
+        except Exception as e:
+            print("logout error message: ", e)
             return Response({"status": "error", "message": "Invalid token"}, status=400)
 
     @action(detail=False, methods=["post"], url_path="logout-all")
@@ -301,7 +314,9 @@ class UserViewSet(viewsets.ModelViewSet):
         except (User.DoesNotExist, ValueError, TypeError):
             return Response({"status": "error", "message": "Invalid user"}, status=400)
         
-        # check password history to be added
+        # check password history
+        if check_password_history(user, new_password):
+            return Response({"status": "error", "message": "You cannot reuse recent passwords"}, status=400)
 
         if not token_generator.check_token(user, token):
             return Response({"status": "error", "message": "Invalid or expired token"}, status=400)
@@ -311,14 +326,28 @@ class UserViewSet(viewsets.ModelViewSet):
             validate_password(new_password, user=user)
         except DjangoValidationError as e:
             return Response({"status": "error", "message": e.messages}, status=400)
+        
+        # Capture the old hashed password before setting the new one
+        old_hashed_password = user.password
 
-        with transaction.atomic(): # ensures that a block of code is executed as a single, indivisible operation
-            user.set_password(new_password)
-            user.save(update_fields=["password"])
-            # save password history to be added
+        try:
+            with transaction.atomic(): # ensures that a block of code is executed as a single, indivisible operation
+                # Set the new password 
+                user.set_password(new_password)
+                user.save(update_fields=['password'])
+                
+                # Save the old password to history
+                if old_hashed_password:
+                    save_password_history(user, old_hashed_password)
+                
+                # Optionally update the session to prevent being logged out
+                update_session_auth_hash(request, user)
 
-            # user log activity
-            log_user_activity(user, 'reset_password')
+                # user log activity
+                log_user_activity(user, 'reset_password')
+                return Response({"status": "success", "message": "Password reset successfully."}) 
+        except Exception as e:
+            return Response({"status": "error", "message": f"An error occurred: {e}"})
         return Response({"status": "success", "message": "Password has been reset successfully."})
 
     @action(detail=False, methods=["post"], url_path="change-password")
@@ -331,8 +360,17 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         if not user.check_password(old_password):
             return Response({"status": "error", "message": "Old password is incorrect"}, status=400)
+        
+        # Retrieve the *current* hashed password before it is changed
+        current_hashed_password = user.password
+
+        # Check if the new password is the same as the current one
+        if user.check_password(new_password):
+            return Response({"status": "error", "message": "The new password cannot be the same as the current password"}, status=400)
 
         # check password history
+        if check_password_history(user, new_password):
+            return Response({"status": "error", "message": "You cannot reuse recent passwords"}, status=400)
 
         # strong password validation
         try:
@@ -340,12 +378,25 @@ class UserViewSet(viewsets.ModelViewSet):
         except DjangoValidationError as e:
             return Response({"status": "error", "message": e.messages}, status=400)
 
-        with transaction.atomic():
-            user.set_password(new_password)
-            user.save(update_fields=["password"])
-            # save password history to be added
-            # user log activity
-            log_user_activity(user, 'change_password')
+
+        try:
+            with transaction.atomic(): # ensures that a block of code is executed as a single, indivisible operation
+                # Set the new password 
+                user.set_password(new_password)
+                user.save(update_fields=['password'])
+                
+                # Save the old password to history
+                if current_hashed_password:
+                    save_password_history(user, current_hashed_password)
+                
+                # Optionally update the session to prevent being logged out
+                update_session_auth_hash(request, user)
+
+                # user log activity
+                log_user_activity(user, 'change_password')
+                return Response({"status": "success", "message": "Password reset successfully."}) 
+        except Exception as e:
+            return Response({"status": "error", "message": f"An error occurred: {e}"})
 
         return Response({"status": "success", "message": "Password changed successfully."})
 
@@ -382,3 +433,11 @@ class UserViewSet(viewsets.ModelViewSet):
         user.is_active = True
         user.save(update_fields=["is_active"])
         return Response({"status": "success", "message": "User activated"})
+    
+    # user list
+    @action(detail=False, methods=["get"], url_path="list", permission_classes=[IsAdminUser])
+    def user_list(self, request):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response({"status": "success", "users": serializer.data})
+

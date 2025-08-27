@@ -27,3 +27,8 @@ class PasswordHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_history')
     password_hash = models.CharField(max_length=128)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Password Changed at {self.timestamp}"
+
+
