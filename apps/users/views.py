@@ -195,12 +195,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
         # allow email or username without a custom backend
         user = authenticate(username=identifier, password=password)
+        attempted_user = None
         if not user:
             # try email → username fallback
             try:
-                acc = User.objects.get(email__iexact=identifier)
-                user = authenticate(username=acc.username, password=password)
+                attempted_user = User.objects.get(email__iexact=identifier)
+                user = authenticate(username=attempted_user.username, password=password)
             except User.DoesNotExist:
+                attempted_user = None
                 user = None
 
         # Handle failed attempts & lockout
@@ -208,14 +210,44 @@ class UserViewSet(viewsets.ModelViewSet):
             if getattr(user, "failed_login_attempts", 0)>=5:
                 return Response({"status":"error","message":"Account locked due to multiple failed attempts"},status=403)
         if not user:
+            log_user_activity(
+                user=attempted_user,
+                action=f"Login failed for identifier '{identifier}'",
+                request=request,
+                outcome="FAILURE",
+                extra_data={"attempted_username": identifier}
+            )
+            # Optionally increment failed_login_attempts for existing user
+            if attempted_user:
+                attempted_user.failed_login_attempts = getattr(attempted_user, "failed_login_attempts", 0) + 1
+                attempted_user.save(update_fields=["failed_login_attempts"])            
             return Response({"status": "error", "message": "Invalid credentials"}, status=401)
+
+        # account lockout check
+        if getattr(user, "failed_login_attempts", 0) >=5:
+            log_user_activity(
+                user=user,
+                action="Login attempt blocked due to multiple failed attempts",
+                request=request,
+                outcome="BLOCKED"
+            )
+            return Response({"status": "error", "message": "Account locked due to multiple failed attempts"}, status=status.HTTP_403_FORBIDDEN)
+        
+        # account deactivated check
         if not user.is_active:
-            return Response({"status": "error", "message": "Account deactivated"}, status=403)
+            log_user_activity(
+                user=user,
+                action="Login attempt blocked: account deactivated",
+                request=request,
+                outcome="BLOCKED"
+            )
+            return Response({"status": "error", "message": "Account deactivated"}, status=status.HTTP_403_FORBIDDEN)
+
         # reset failed login attempts
         user.failed_login_attempts = 0
         user.save(update_fields=["failed_login_attempts"])
 
-        # ✅ Triggers user_logged_in signal + updates last_login
+        # Triggers user_logged_in signal + updates last_login
         login(request, user)
 
         # Issue jwt-tokens
