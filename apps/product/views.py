@@ -1,7 +1,7 @@
 from rest_framework import generics 
 from .serializers import *
 from .models import *
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .pagination import CustomPagination
@@ -21,17 +21,19 @@ class CategoryDetailView(generics.RetrieveAPIView):
 class CategoryCreateView(generics.CreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
 
 # update category
 class CategoryUpdateView(generics.UpdateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
+
 # category create
 class CategoryDeleteView(generics.DestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
 
 
 # unified product views
@@ -40,7 +42,6 @@ class CategoryDeleteView(generics.DestroyAPIView):
 class ProductCreateListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     filterset_fields = ['category__name']
     pagination_class = CustomPagination
@@ -50,6 +51,10 @@ class ProductCreateListView(generics.ListCreateAPIView):
     ordering_fields = ['price', 'created_at']
     # api/v1/products/?ordering=order_value/=-order_value
 
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny]
+        return [IsAdminUser]
 
 
 
