@@ -3,7 +3,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash
+from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash, login
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
@@ -215,13 +215,16 @@ class UserViewSet(viewsets.ModelViewSet):
         user.failed_login_attempts = 0
         user.save(update_fields=["failed_login_attempts"])
 
+        # ✅ Triggers user_logged_in signal + updates last_login
+        login(request, user)
+
         # Issue jwt-tokens
         refresh = RefreshToken.for_user(user)
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
 
         # user log activity
-        log_user_activity(user,"login" )
+        # log_user_activity(user,"login" )
 
         return Response({
             "status": "success",
