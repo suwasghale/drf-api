@@ -1,6 +1,6 @@
 from django.utils import timezone
-# from apps.users.models import UserActivityLog
-from ..models import UserActivityLog
+from apps.users.models import UserActivityLog
+# from ..models import UserActivityLog
 
 def log_user_activity(user, action):
     """
