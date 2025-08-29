@@ -475,6 +475,8 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="list", permission_classes=[IsAdminUser])
     def user_list(self, request):
         users = User.objects.all()
+        # Only fields needed for user_list API
+        users = User.objects.only('id', 'username', 'email', 'is_email_verified', 'display_name').all()
         serializer = UserSerializer(users, many=True)
         return Response({"status": "success", "users": serializer.data})
 

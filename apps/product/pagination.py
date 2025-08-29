@@ -18,5 +18,9 @@ class CustomPagination(PageNumberPagination):
             'count': self.page.paginator.count,
             'total_pages': total_pages,
             'current_page': self.page.number,
+            'first_page': 1,
+            'last_page': total_pages,
+            'is_paginated': total_pages > 1,
+            'page_size': page_size,
             'results': data
         })
