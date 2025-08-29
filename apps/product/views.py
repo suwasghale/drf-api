@@ -53,8 +53,8 @@ class ProductCreateListView(generics.ListCreateAPIView):
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [AllowAny]
-        return [IsAdminUser]
+            return [AllowAny()]
+        return [IsAdminUser()]
 
 
 

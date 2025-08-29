@@ -194,7 +194,7 @@ class UserViewSet(viewsets.ModelViewSet):
         password = serializer.validated_data["password"]
 
         # allow email or username without a custom backend
-        user = authenticate(username=identifier, password=password)
+        user = authenticate(request,username=identifier, password=password)
         attempted_user = None
         if not user:
             # try email → username fallback
@@ -220,19 +220,21 @@ class UserViewSet(viewsets.ModelViewSet):
             # Optionally increment failed_login_attempts for existing user
             if attempted_user:
                 attempted_user.failed_login_attempts = getattr(attempted_user, "failed_login_attempts", 0) + 1
-                attempted_user.save(update_fields=["failed_login_attempts"])            
+                attempted_user.save(update_fields=["failed_login_attempts"])
+                
+                # account lockout check
+                if attempted_user.failed_login_attempts >=5:
+                    log_user_activity(
+                        user=user,
+                        action="Login attempt blocked due to multiple failed attempts",
+                        request=request,
+                        outcome="BLOCKED"
+                    )
+                    return Response({"status": "error", "message": "Account locked due to multiple failed attempts"}, status=status.HTTP_403_FORBIDDEN)
+                    
             return Response({"status": "error", "message": "Invalid credentials"}, status=401)
 
-        # account lockout check
-        if getattr(user, "failed_login_attempts", 0) >=5:
-            log_user_activity(
-                user=user,
-                action="Login attempt blocked due to multiple failed attempts",
-                request=request,
-                outcome="BLOCKED"
-            )
-            return Response({"status": "error", "message": "Account locked due to multiple failed attempts"}, status=status.HTTP_403_FORBIDDEN)
-        
+    
         # account deactivated check
         if not user.is_active:
             log_user_activity(
