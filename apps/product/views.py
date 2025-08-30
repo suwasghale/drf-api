@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .pagination import CustomPagination
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 # list of category
 class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all()
@@ -35,14 +37,15 @@ class CategoryDeleteView(generics.DestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
 
-
-# unified product views
-# create and get all product view
-
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-
+# product views
 class ProductCreateListView(generics.ListCreateAPIView):
+    """
+    get:
+    Return a list of all products with filtering, searching, and ordering support.
+
+    post:
+    Create a new product (admin only).
+    """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
