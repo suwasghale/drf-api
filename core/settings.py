@@ -184,6 +184,7 @@ CACHES = {
 }
 
 
+
 # email-smtp
 EMAIL_BACKEND = config('EMAIL_BACKEND')
 EMAIL_HOST = config ('EMAIL_HOST')
