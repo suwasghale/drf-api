@@ -51,8 +51,8 @@ class ProductCreateListView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category__name']
     pagination_class = CustomPagination
-    search_fields = ['name']
-    ordering_fields = ['price', 'created_at']
+    search_fields = ['name', 'description', 'category__name']
+    ordering_fields = ['price', 'created_at', 'name']
 
     @method_decorator(cache_page(60 * 2))  # cache GET for 2 minutes
     def get(self, *args, **kwargs):
