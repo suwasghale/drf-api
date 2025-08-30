@@ -39,22 +39,27 @@ class CategoryDeleteView(generics.DestroyAPIView):
 # unified product views
 # create and get all product view
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+
 class ProductCreateListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category__name']
     pagination_class = CustomPagination
-    # api/v1/products/?category__name= clothes name=
     search_fields = ['name']
-    # api/v1/products/?search=search_value
     ordering_fields = ['price', 'created_at']
-    # api/v1/products/?ordering=order_value/=-order_value
+
+    @method_decorator(cache_page(60 * 2))  # cache GET for 2 minutes
+    def get(self, *args, **kwargs):
+        return super().get(*args, **kwargs)
 
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
         return [IsAdminUser()]
+
 
 
 
