@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.product',
     # 'apps.users',
     "apps.users.apps.UsersConfig",
+    "apps.wishlist",
 
 
     # Third party apps
