@@ -30,4 +30,12 @@ class WishlistViewSet(viewsets.ModelViewSet):
 
         return Response({"detail": "Product added to wishlist"}, status=status.HTTP_201_CREATED)
 
-
+    def remove_product(self, request, pk=None):
+        wishlist = self.get_object()
+        product_id = request.data.get('product_id')
+        try:
+            item = WishlistItem.objects.get(wishlist=wishlist, product_id=product_id)
+            item.delete()
+            return Response({"detail": "Product removed from wishlist"}, status=status.HTTP_204_NO_CONTENT)
+        except WishlistItem.DoesNotExist:
+            return Response({"detail": "Product not in wishlist"}, status=status.HTTP_404_NOT_FOUND)
