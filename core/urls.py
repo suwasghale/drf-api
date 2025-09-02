@@ -37,6 +37,9 @@ urlpatterns = [
     path('api/v1/', include('apps.product.urls')),
     path('api/v1/', include('apps.users.urls')),
 
+    # wishlists
+    path('api/v1/', include('apps.wishlist.api.urls')),
+
     # JWT Auth endpoints
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
