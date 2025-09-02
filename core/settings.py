@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "apps.users.apps.UsersConfig",
     "apps.wishlist",
 
+    # to be added: cart, order, payment, shipment, invoice, discounts, reviews, notifications, analytics, support
+
 
     # Third party apps
     'rest_framework',
