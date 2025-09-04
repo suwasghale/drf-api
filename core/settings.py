@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # 'apps.users',
     "apps.users.apps.UsersConfig",
     "apps.wishlist",
+    "apps.cart"
 
     # to be added: cart, order, payment, shipment, invoice, discounts, reviews, notifications, analytics, support
 
