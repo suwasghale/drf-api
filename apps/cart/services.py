@@ -17,3 +17,11 @@ def add_to_cart(user, product_id, quantity):
         item.quantity = quantity
         item.save()
     return item
+
+def remove_from_cart(user, product_id):
+    cart = get_or_create_cart(user)
+    CartItem.objects.filter(cart = cart, product_id = product_id).delete()
+
+def clear_cart(user):
+    cart = get_or_create_cart(user)
+    cart.items.all().delete()
