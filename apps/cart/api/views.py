@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from apps.cart.models import Cart
 from apps.cart.api.serializers import CartSerializer
 from apps.cart.services import get_or_create_cart, add_to_cart, remove_from_cart, clear_cart
+from rest_framework.decorators import action
 
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -29,6 +30,8 @@ class CartViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
+    # POST /api/carts/{pk}/add_product/
+    @action(detail=True, methods=["post"])
     def add_product(self, request, pk=None):
         product_id = request.data.get("product_id")
         quantity = int(request.data.get("quantity", 1))
@@ -42,12 +45,16 @@ class CartViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
+        
+    # DELETE /api/carts/{pk}/remove_product/
+    @action(detail=True, methods=["delete"])
     def remove_product(self, request, pk=None):
         product_id = request.data.get("product_id")
         remove_from_cart(user = request.user, product_id = product_id)
         return Response({"detail": "Product removed from cart"}, status=status.HTTP_204_NO_CONTENT)
-
+    
+    # DELETE /api/carts/{pk}/clear_cart/
+    @action(detail=True, methods=["delete"])
     def clear_cart(self, request, pk=None):
         clear_cart(request.user)
         return Response({"detail": "Cart cleared"}, status=status.HTTP_204_NO_CONTENT)
