@@ -38,7 +38,16 @@ class CartViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": f"{item.quantity} x {item.product.name} added to cart"},
                 status=status.HTTP_201_CREATED,
-                
+
             )
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def remove_product(self, request, pk=None):
+        product_id = request.data.get("product_id")
+        remove_from_cart(user = request.user, product_id = product_id)
+        return Response({"detail": "Product removed from cart"}, status=status.HTTP_204_NO_CONTENT)
+
+    def clear_cart(self, request, pk=None):
+        clear_cart(request.user)
+        return Response({"detail": "Cart cleared"}, status=status.HTTP_204_NO_CONTENT)
