@@ -10,10 +10,10 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'product_name', 'quantity', 'subtotal']
 
 class CartSerializer(serializers.ModelSerializer):
-    items = CartItemSerializer(many=True, read_only=True)
+    items = CartItemSerializer(many=True, read_only=True) # creates a nested serializer, where the items field in the Cart response will be a list of serialized CartItem objects, each formatted by the CartItemSerializer.
     total_price = serializers.ReadOnlyField()
 
-    class Meta:
+    class Meta: # A special class used to provide metadata about the serializer's configuration.
         model = Cart
         fields = ["id", "user", "items", "total_price"]
         read_only_fields = ["user"]
