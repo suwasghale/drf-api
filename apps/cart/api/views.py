@@ -28,3 +28,17 @@ class CartViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+    
+    def add_product(self, request, pk=None):
+        product_id = request.data.get("product_id")
+        quantity = int(request.data.get("quantity", 1))
+
+        try:
+            item = add_to_cart(user=request.user, product_id=product_id, quantity=quantity)
+            return Response(
+                {"detail": f"{item.quantity} x {item.product.name} added to cart"},
+                status=status.HTTP_201_CREATED,
+                
+            )
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
