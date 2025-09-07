@@ -48,9 +48,9 @@ INSTALLED_APPS = [
     # 'apps.users',
     "apps.users.apps.UsersConfig",
     "apps.wishlist",
-    "apps.cart"
+    "apps.cart",
 
-    # to be added: cart, order, payment, shipment, invoice, discounts, reviews, notifications, analytics, support
+    # to be added: order, payment, shipment, invoice, discounts, reviews, notifications, analytics, support
 
 
     # Third party apps
