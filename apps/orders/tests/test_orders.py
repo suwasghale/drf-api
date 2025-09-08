@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from apps.product.models import Product
+from apps.product.models import Product, Category
 from apps.cart.models import Cart, CartItem
 from apps.orders.models import Order, OrderItem
 
@@ -15,9 +15,16 @@ class OrderIntegrationTest(APITestCase):
         self.user = User.objects.create_user(username="testuser", password="password123")
         self.client.login(username="testuser", password="password123")
 
+        # Create a category (required by Product FK)
+        self.category = Category.objects.create(name="Electronics")
+
         # Create sample products
-        self.product1 = Product.objects.create(name="Product 1", price=100)
-        self.product2 = Product.objects.create(name="Product 2", price=200)
+        self.product1 = Product.objects.create(
+            name="Product 1", price=100, category = self.category
+            )
+        self.product2 = Product.objects.create(
+            name="Product 2", price=200, category = self.category
+            )
 
         # Create a cart for this user
         self.cart = Cart.objects.create(user=self.user)
