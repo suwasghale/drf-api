@@ -13,7 +13,8 @@ class OrderIntegrationTest(APITestCase):
     def setUp(self):
         # Create a test user
         self.user = User.objects.create_user(username="testuser", password="password123")
-        self.client.login(username="testuser", password="password123")
+        # self.client.login(username="testuser", password="password123") # only works for session auth
+        self.client.force_authenticate(user=self.user) # for jwt auth
 
         # Create a category (required by Product FK)
         self.category = Category.objects.create(name="Electronics")
@@ -37,7 +38,7 @@ class OrderIntegrationTest(APITestCase):
         CartItem.objects.create(cart=self.cart, product=self.product2, quantity=1)
 
         # Place order
-        url = reverse("orders-place-order")  # matches @action in OrderViewSet
+        url = reverse("order-place-order")  # matches @action in OrderViewSet
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

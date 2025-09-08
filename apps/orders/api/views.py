@@ -17,9 +17,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         # normal creation is not allowed, use create_order action
-        raise NotImplementedError("Use the '/orders/place_order/' endpoint to create orders.")
+        raise NotImplementedError("Use the '/order/place-order/' endpoint to create orders.")
 
-    @action(detail = False, methods = ['post'], url_path = 'place_order')
+    @action(detail = False, methods = ['post'])
     def place_order(self, request):
         try:
             order = create_order_from_cart(request.user)
