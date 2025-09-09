@@ -15,6 +15,7 @@ class Payment(models.Model):
         ("failed", "Failed"),
     )
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="payment")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # ✅ amount actually paid
     gateway = models.CharField(max_length=30, choices=GATEWAYS)
     gateway_ref = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUSES, default="pending")
