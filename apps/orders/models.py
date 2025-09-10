@@ -21,6 +21,22 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} by {self.user.username}"
     
+    # sum of completed payments
+    @property 
+    def total_paid(self):
+        # payments = self.payment.filter(status="completed")
+        # return sum(payment.amount for payment in payments)
+        return sum(p.amount for p in self.payment.filter(status="completed"))
+    
+    # balance still due/to be paid.
+    @property
+    def balance_due(self):
+        return self.total_price - self.total_paid
+    
+    # check if the order is fully paid
+    @property 
+    def is_fully_paid(self):
+        return self.total_paid >= self.total_price
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
