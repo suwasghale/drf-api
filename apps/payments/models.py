@@ -13,6 +13,7 @@ class Payment(models.Model):
         ("pending", "Pending"),
         ("completed", "Completed"),
         ("failed", "Failed"),
+        ("refunded", "Refunded"), # in case of returns
     )
     order = models.ForeignKey( 
         Order, 
