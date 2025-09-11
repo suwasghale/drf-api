@@ -59,7 +59,10 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
         order = obj.order 
         return {
             "id": order.id,
-            "user": order.user.username,
+            "user": {
+                "id": order.user.id,
+                "username": order.user.username
+            },
             "status": order.status,
             "total_price": order.total_price,
             "created_at": order.created_at,
@@ -74,33 +77,40 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
 
 class PaymentCreateSerializer(serializers.ModelSerializer):
     """
-     Create new payments with validations
+    Create new payments with validations and auto-update order status
     """
+    # extra fields depending on gateway
+    token = serializers.CharField(required=False)   # for Khalti
+    ref_id = serializers.CharField(required=False)  # for Esewa
+
     class Meta:
         model = Payment
-        fields = ["order", "amount", "gateway", "gateway_ref"]
+        fields = ["order", "amount", "gateway", "gateway_ref", "token", "ref_id"]
 
-    def validate(self, attrs):
-        order = attrs["order"]
-        amount = attrs["amount"]
+    def validate(self, data):
+        gateway = data.get("gateway")
 
-        if amount <= 0:
-            raise serializers.ValidationError("Amount must be greater than 0.")
+        if gateway == "khalti" and not data.get("token"):
+            raise serializers.ValidationError({"token": "Token required for Khalti payment"})
 
-        if amount > order.remaining_balance:
-            raise serializers.ValidationError(
-                f"Amount {amount} exceeds remaining balance {order.remaining_balance}."
-            )
+        if gateway == "esewa" and not data.get("ref_id"):
+            raise serializers.ValidationError({"ref_id": "Reference ID required for eSewa payment"})
 
-        return attrs
+        return data
 
     def create(self, validated_data):
         payment = Payment.objects.create(**validated_data)
 
-        # Business rule: COD → mark completed immediately
+        # COD → mark completed immediately
         if payment.gateway == "cod":
             payment.status = "completed"
             payment.save(update_fields=["status"])
+
+        # ✅ Check if the order is now fully paid
+        order = payment.order
+        if order.is_fully_paid:
+            order.status = "paid"
+            order.save(update_fields=["status"])
 
         return payment
 

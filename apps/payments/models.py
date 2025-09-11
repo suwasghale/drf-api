@@ -18,7 +18,7 @@ class Payment(models.Model):
     order = models.ForeignKey( 
         Order, 
         on_delete=models.CASCADE, 
-        related_name="payment") # for multi payments per order
+        related_name="payments") # for multi payments per order
     amount = models.DecimalField(max_digits=10, decimal_places=2)  # ✅ amount actually paid
     gateway = models.CharField(max_length=30, choices=GATEWAYS)
     gateway_ref = models.CharField(max_length=255, null=True, blank=True)
