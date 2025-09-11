@@ -103,3 +103,16 @@ class PaymentCreateSerializer(serializers.ModelSerializer):
             payment.save(update_fields=["status"])
 
         return payment
+
+class PaymentUpdateSerializer(serializers.ModelSerializer):
+    """
+    Used by admin/payment gateway callback to update status
+    """
+    class Meta:
+        model = Payment
+        fields = ["status", "gateway_ref"]
+
+    def validate_status(self, value):
+        if value not in ["pending", "completed", "failed"]:
+            raise serializers.ValidationError("Invalid status value.")
+        return value
