@@ -1,6 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db import transaction
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from apps.payments.api.serializers import (
     PaymentSerializer,
@@ -57,14 +59,22 @@ class PaymentViewSet(viewsets.ModelViewSet):
         payment = self.get_object()
         if payment.status != "completed":
             return Response({"detail": "Only completed payments can be refunded."}, status=status.HTTP_400_BAD_REQUEST)
-        payment.status = "refunded"
-        payment.save(update_fields=["status"])
+        # Wrap the entire operation in a database transaction for atomicity
+        with transaction.atomic():
+            # refund the individual payment
+            payment.status = "refunded"
+            payment.save(update_fields=["status"])
         
-        # Optionally, update order status if needed
-        order = payment.order
-        if order.is_fully_paid:
-            order.status = "paid"
-        else:
-            order.status = "pending"
-        order.save(update_fields= ["status"])
+            # Optionally, update order status based on the new payment status
+            order = payment.order
+            if order.total_paid <= Decimal("0.00"):
+                # all payments have been refunded
+                order.status = "refunded"
+            elif order.is_fully_paid:
+                # Still fully paid (e.g., if there were multiple payments and only a small one was refunded)
+                order.status = "paid"
+            else:
+                # partial refund was issued
+                order.status = "partially_refunded"
+            order.save(update_fields= ["status"])
         return Response({"detail": "Payment refunded successfully."}, status=status.HTTP_200_OK)
