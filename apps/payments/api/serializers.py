@@ -123,6 +123,26 @@ class PaymentUpdateSerializer(serializers.ModelSerializer):
         fields = ["status", "gateway_ref"]
 
     def validate_status(self, value):
-        if value not in ["pending", "completed", "failed"]:
+        if value not in ["pending", "completed", "failed", "refunded"]:
             raise serializers.ValidationError("Invalid status value.")
         return value
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+
+        order = instance.order
+
+        # ✅ If payment is refunded or failed → check balance
+        if instance.status in ["refunded", "failed"]:
+            if order.total_paid == 0:
+                order.status = "pending"  # no valid payment left
+            else:
+                order.status = "pending"  # partially paid, keep it pending
+            order.save(update_fields=["status"])
+
+        # ✅ If payments cover total → mark as paid
+        elif order.is_fully_paid:
+            order.status = "paid"
+            order.save(update_fields=["status"])
+
+        return instance
