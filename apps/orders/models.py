@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from apps.product.models import Product
+from decimal import Decimal
 # Create your models here.
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -26,7 +27,7 @@ class Order(models.Model):
     def total_paid(self):
         # payments = self.payment.filter(status="completed")
         # return sum(payment.amount for payment in payments)
-        return sum(p.amount for p in self.payment.filter(status="completed"))
+        return sum((p.amount for p in self.payment.filter(status="completed")), Decimal("0.00"))
     
     # balance still due/to be paid.
     @property
