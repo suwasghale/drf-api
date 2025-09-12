@@ -38,3 +38,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
             return PaymentUpdateSerializer
         
         return PaymentSerializer
+    
+    def perform_create(self, serializer): 
+        """ Auto-update order status if fully paid """
+        payment = serializer.save()
+        # update order status automatically if fully paid
+        order = payment.order
+        if order.is_fully_paid:
+            order.status = "paid"
+        else:
+            order.status = "pending"
+        order.save(update_fields=["status"])
