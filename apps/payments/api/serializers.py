@@ -35,6 +35,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
     """
     remaining_balance = serializers.SerializerMethodField()
     is_fully_paid = serializers.SerializerMethodField()
+    refunded = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
@@ -49,6 +50,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "remaining_balance",
             "is_fully_paid",
+            "refunded",
         ]
     """
     The given is the method for the order = serializers.SerializerMethodField() field. DRF automatically looks for a method named get_<field_name>.
@@ -73,6 +75,10 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
     
     def get_is_fully_paid(self, obj):
         return obj.order.is_fully_paid
+    
+    def get_refunded(self, obj):
+        # check if this payment has been refunded
+        return obj.status == "refunded"
 
 
 class PaymentCreateSerializer(serializers.ModelSerializer):
