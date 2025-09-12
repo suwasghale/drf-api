@@ -25,14 +25,15 @@ class Order(models.Model):
     # sum of completed payments
     @property 
     def total_paid(self):
-        # payments = self.payment.filter(status="completed")
-        # return sum(payment.amount for payment in payments)
-        return sum((p.amount for p in self.payment.filter(status="completed")), Decimal("0.00"))
+        # sum of all completed payments minus refunded
+        completed = self.payment.filter(status="completed").aggregate(total=models.Sum('amount'))['total'] or 0
+        refunded = self.payment.filter(status="refunded").aggregate(total=models.Sum('amount'))['total'] or 0
+        return completed - refunded
     
-    # balance still due/to be paid.
+    # balance still due or to be paid.
     @property
     def balance_due(self):
-        return self.total_price - self.total_paid
+        return max(self.total_price - self.total_paid, 0)    
     
     # check if the order is fully paid
     @property 
