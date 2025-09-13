@@ -27,5 +27,4 @@ def create_refund_on_cancel(sender, instance, created, **kwargs):
                 gateway = payment.gateway,
                 gateway_ref = payment.gateway_ref,
                 status = "refunded",
-                gateway_ref = f"Refund for Payment ID {payment.id} of Order ID {instance.id}"
             )

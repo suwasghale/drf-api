@@ -61,9 +61,9 @@ INSTALLED_APPS = [
     "apps.cart",
     "apps.orders",
     "apps.payments",
-    "shipments",
+    "apps.shipments",
 
-    # to be added: invoice, discounts, reviews, notifications, analytics, support
+    # to be added: invoices, discounts, reviews, notifications, analytics, supports
 
 
     # Third party apps
