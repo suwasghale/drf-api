@@ -11,15 +11,25 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
 from datetime import timedelta
 import os
+import environ
 
 
 AUTH_USER_MODEL = 'users.User'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Initialise environment variables
+env = environ.Env(
+    # Set default for DEBUG to False if it's not set in .env
+    DEBUG=(bool, False)
+)
+
+# Read .env file
+# It will load environment variables from the .env file
+environ.Env.read_env(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -103,6 +113,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "ALGORITHM": "HS256",                     # Add algorithm
     "SIGNING_KEY": SECRET_KEY, 
+    # "SIGNING_KEY": env("JWT_SIGNING_KEY"), to be made later
 
 }
 # drf-spectacular
@@ -166,11 +177,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='127.0.0.1'),
-        'PORT': config('DB_PORT', default='3307'),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST', default='127.0.0.1'),
+        'PORT': env('DB_PORT', default='3307'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
@@ -192,13 +203,13 @@ CACHES = {
 
 
 # email-smtp
-EMAIL_BACKEND = config('EMAIL_BACKEND')
-EMAIL_HOST = config ('EMAIL_HOST')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-EMAIL_PORT = config('EMAIL_PORT')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_BACKEND = env('EMAIL_BACKEND')
+EMAIL_HOST = env ('EMAIL_HOST')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -244,6 +255,22 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ----------------Pyaments Settings ----------------
+# esewa 
+ESEWA_MERCHANT_ID = "EPAYTEST"  # Test merchant ID, replace in production
+
+# khalti
+# === Khalti Sandbox (use dev.khalti.com) ===
+KHALTI_IS_SANDBOX = True  # True = dev sandbox, False = live
+KHALTI_SECRET_KEY = env('KHALTI_SECRET_KEY')  # from Khalti sandbox docs
+KHALTI_RETURN_URL = "http://127.0.0.1:8000/payments/khalti/return/"
+KHALTI_WEBSITE_URL = "http://127.0.0.1:8000"
+
+# stripe
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default=None)
 
 
 # frontend
