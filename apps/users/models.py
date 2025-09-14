@@ -65,15 +65,21 @@ class Address(models.Model):
     class Meta:
         verbose_name_plural = "Addresses"
         ordering = ['-is_default', '-created_at']
+        indexes = [
+        models.Index(fields=["user", "is_default"]),
+        models.Index(fields=["postal_code"]),   
+            ]
         constraints = [
             models.UniqueConstraint(
-                    fields=["user", "address_type"],
+                    fields=["user", "address_type", "street_address", "city", "state", "postal_code", "country"],
                     name="unique_user_address"
             )
         ]
     
     def save(self, *args, **kwargs):
         """ Ensure only one default address per user as this method guarantees that every time an address is marked as default, any previous default address for that user is automatically unset."""
+        if not self.recipient_name:
+            self.recipient_name = f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
         if self.is_default:
             # Unset the old default address for this user
             Address.objects.filter(user=self.user, is_default=True).update(is_default=False)
