@@ -15,6 +15,44 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+class Address(models.Model):
+    ADDRESS_TYPE_CHOICES = [
+        ("billing", "Billing"),
+        ("shipping", "Shipping"),
+        ("work", "Work"),
+        ("home", "Home"),
+        ("other", "Other"),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    address_type = models.CharField(max_length=20, choices=ADDRESS_TYPE_CHOICES, default="home")
+
+    recipient_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    street_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=120)
+    state = models.CharField(max_length=120, blank=True, null=True)
+    postal_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100, default="Nepal")
+
+    is_default = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Addresses"
+        ordering = ['-is_default', '-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                    fields=["user", "address_type", "street_address", "city", "state", "postal_code", "country"],
+                    name="unique_user_address"
+            )
+        ]
+   
+        
+    def __str__(self):
+        return f"{self.recipient_name} - {self.street_address}, {self.city}"
+
 class UserActivityLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
     action = models.CharField(max_length=255)
