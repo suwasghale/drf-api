@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from phonenumber_field.modelfields import PhoneNumberField
+from apps.users.utils.default_country import get_default_country
 # Create your models here.
 class User(AbstractUser):
     """
@@ -14,6 +15,27 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+# A dedicated model for countries
+class Country(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=2, unique=True)  # e.g., 'NP'
+
+    def __str__(self):
+        return self.name
+
+# A dedicated model for states/regions within a country
+class State(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='states')
+    name = models.CharField(max_length=120)
+
+    class Meta:
+        # Prevents a state with the same name existing twice for one country
+        unique_together = ('country', 'name')
+
+    def __str__(self):
+        return self.name
+
 
 class Address(models.Model):
     ADDRESS_TYPE_CHOICES = [
@@ -31,9 +53,9 @@ class Address(models.Model):
     phone_number = PhoneNumberField(blank=True, null=True) # Using PhoneNumberField for better phone number handling
     street_address = models.CharField(max_length=255)
     city = models.CharField(max_length=120)
-    state = models.CharField(max_length=120, blank=True, null=True)
     postal_code = models.CharField(max_length=20)
-    country = models.CharField(max_length=100, default="Nepal")
+    country = models.ForeignKey(Country, on_delete=models.PROTECT, default=get_default_country) # Critical lookup tables, non-negotiable relationships.
+    state = models.ForeignKey(State, on_delete=models.SET_NULL, null=True, blank=True) # Optional relationships, preserving data after a link is broken.
 
     is_default = models.BooleanField(default=False, help_text="Designates this address as the user's primary. There can only be one primary address per user, and this must be managed by the application logic.")
 
@@ -45,10 +67,17 @@ class Address(models.Model):
         ordering = ['-is_default', '-created_at']
         constraints = [
             models.UniqueConstraint(
-                    fields=["user", "address_type", "street_address", "city", "state", "postal_code", "country"],
+                    fields=["user", "address_type"],
                     name="unique_user_address"
             )
         ]
+    
+    def save(self, *args, **kwargs):
+        """ Ensure only one default address per user as this method guarantees that every time an address is marked as default, any previous default address for that user is automatically unset."""
+        if self.is_default:
+            # Unset the old default address for this user
+            Address.objects.filter(user=self.user, is_default=True).update(is_default=False)
+        super().save(*args, **kwargs)
    
         
     def __str__(self):
