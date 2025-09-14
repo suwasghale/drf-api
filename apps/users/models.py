@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from phonenumber_field.modelfields import PhoneNumberField
 # Create your models here.
 class User(AbstractUser):
     """
@@ -27,14 +27,15 @@ class Address(models.Model):
     address_type = models.CharField(max_length=20, choices=ADDRESS_TYPE_CHOICES, default="home")
 
     recipient_name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    # phone_number = models.CharField(max_length=20, blank=True, null=True)
+    phone_number = PhoneNumberField(blank=True, null=True) # Using PhoneNumberField for better phone number handling
     street_address = models.CharField(max_length=255)
     city = models.CharField(max_length=120)
     state = models.CharField(max_length=120, blank=True, null=True)
     postal_code = models.CharField(max_length=20)
     country = models.CharField(max_length=100, default="Nepal")
 
-    is_default = models.BooleanField(default=False)
+    is_default = models.BooleanField(default=False, help_text="Designates this address as the user's primary. There can only be one primary address per user, and this must be managed by the application logic.")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
