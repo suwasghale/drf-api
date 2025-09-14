@@ -1,10 +1,13 @@
-from django.db import models
-from apps.users.models import Country
+from django.apps import apps
+
 def get_default_country():
-    # This queries the database for the country by its code,
-    # which is more stable than relying on a specific ID.
+    """
+    Returns the default Country object, creating it if necessary.
+    Uses apps.get_model() to prevent circular import issues.
+    """
     try:
+        # apps.get_model() safely gets the model at runtime
+        Country = apps.get_model('users', 'Country')
         return Country.objects.get(code='NP')
     except Country.DoesNotExist:
-        # If the country doesn't exist, create it.
         return Country.objects.create(name='Nepal', code='NP')
