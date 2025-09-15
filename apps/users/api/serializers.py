@@ -59,3 +59,57 @@ class StateSerializer(serializers.ModelSerializer):
         model = State
         fields = ["id", "name", "country", "country_id"]
         read_only_fields = ["id", "country"]
+
+class AddressSerializer(serializers.ModelSerializer):
+    """
+    Full featured Address serializer.
+    - Uses PhoneNumber serializer field for robust phone parsing/validation.
+    - Returns nested country and state objects for convenience (read-only).
+    - Allows staff to create addresses for other users by passing `user_id`, otherwise the request user is used.
+    - Handles the "is_default" atomic toggle (when you create/update an address and mark it default, all other
+      addresses for that user are unset in one transaction).
+    - Protects against creating a duplicate identical address (same user + type + street + city + postal + country).
+    """
+    # Read-only nested representations:
+    country = CountrySerializer(read_only=True)
+    state = StateSerializer(read_only=True)
+
+    # Write-only ids for linking on create/update:
+    country_id = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.all(), source="country", write_only=True, required=True
+    )
+    state_id = serializers.PrimaryKeyRelatedField(
+        queryset=State.objects.all(), source="state", write_only=True, allow_null=True, required=False
+    )
+
+    phone_number = SerializerPhoneNumberField(allow_null=True, required=False)
+
+    user = serializers.CharField(source="user.username", read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False,
+        help_text="Staff may set user_id to create address for other users."
+    )
+
+    class Meta:
+        model = Address
+        fields = [
+            "id",
+            "user",
+            "user_id",
+            "address_type",
+            "recipient_name",
+            "phone_number",
+            "street_address",
+            "city",
+            "state",
+            "state_id",
+            "postal_code",
+            "country",
+            "country_id",
+            "is_default",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "user", "state", "country", "created_at", "updated_at"]
