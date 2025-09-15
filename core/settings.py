@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     "debug_toolbar",
+    "phonenumber_field",
 
 ]
 
