@@ -40,3 +40,22 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token["email"] = user.email
         token["is_email_verified"] = user.is_email_verified
         return token
+
+# address related serializers
+class CountrySerializer(serializers.ModelSerializer):
+    """Read-only / simple create serializer for Country."""
+    class Meta:
+        model = Country
+        fields = ["id", "name", "code"]
+        read_only_fields = ["id"]
+
+class StateSerializer(serializers.ModelSerializer):
+    """State serializer with nested country summary for convenience."""
+    country = CountrySerializer(read_only=True)
+    country_id = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.all(), source='country', write_only=True, required=False
+    )
+    class Meta:
+        model = State
+        fields = ["id", "name", "country", "country_id"]
+        read_only_fields = ["id", "country"]
