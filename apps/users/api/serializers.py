@@ -165,3 +165,29 @@ class AddressSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("An identical address already exists for this user and address type.")
 
         return attrs
+    
+    def create(self, validated_data):
+        """
+        Create address with atomic handling of `is_default`.
+        If `user_id` provided and request.user.is_staff, create for that user.
+        """
+        request = self.context.get("request")
+        # Determine user: prefer user_id if staff, otherwise request.user
+        if validated_data.pop("user", None):
+            # shouldn't normally be present; user_id maps to `user` because of source mapping
+            user = validated_data.pop("user")
+        elif self.initial_data.get("user_id") and request.user.is_staff:
+            user = validated_data.pop("user")
+        else:
+            user = request.user
+        is_default = validated_data.pop("is_default", False)
+
+        # Perform create and default toggle in one transaction
+        with transaction.atomic():
+            if is_default:
+                # unset previous defaults for this user
+                Address.objects.filter(user=user, is_default=True).update(is_default=False)
+
+            address = Address.objects.create(user=user, is_default=is_default, **validated_data)
+        return address
+
