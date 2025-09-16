@@ -191,3 +191,34 @@ class AddressSerializer(serializers.ModelSerializer):
             address = Address.objects.create(user=user, is_default=is_default, **validated_data)
         return address
 
+    def update(self, instance, validated_data):
+        """
+        Support partial / full updates. Handle toggling `is_default` atomically.
+        Staff can change `user` only if provided and staff.
+        """
+        request = self.context.get("request")
+        # If a different user is provided via user_id and caller is staff -> allow changing owner
+        if "user" in validated_data:
+            if request.user.is_staff:
+                instance.user = validated_data.pop("user")
+            else:
+                # ignore any attempt to change user if not staff
+                validated_data.pop("user", None)
+        
+        is_default = validated_data.pop("is_default", None)
+        
+        with transaction.atomic():
+            # If setting new default, unset others first
+            if is_default:
+                Address.objects.filter(user=instance.user, is_default=True).exclude(pk=instance.pk).update(is_default=False)
+                instance.is_default = True
+            elif is_default is False and instance.is_default:
+                # If explicitly marking this address non-default, allow it
+                instance.is_default = False
+
+            # update other fields
+            for attr, val in validated_data.items():
+                setattr(instance, attr, val)
+            instance.save()
+
+        return instance
