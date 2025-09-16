@@ -1,26 +1,62 @@
 from rest_framework import permissions
 
-class IsOwnerOrAdmin(permissions.BasePermission):
+class IsSuperAdmin(permissions.BasePermission):
     """
-    Object-level permission to allow only owners of an object (Address) OR staff users.
-    This should be used on viewsets where user-specific objects are returned.
+    Allows access only to superadmins.
     """
     def has_permission(self, request, view):
-        # Must be authenticated for any non-read actions (you can tweak to allow read-only to anon)
+        return request.user and request.user.is_superuser
+
+class IsStaff(permissions.BasePermission):
+    """
+    Allows access only to staff (admins).
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.is_staff
+
+class IsVendor(permissions.BasePermission):
+    """
+    Allows access only to vendors.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.role == 'VENDOR'
+
+class IsUser(permissions.BasePermission):
+    """
+    Allows access only to regular users.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.role == 'USER'
+
+class IsOwner(permissions.BasePermission):
+    """
+    Object-level permission to allow owners of an object to edit it.
+    Assumes the model instance has a 'user' or 'owner' attribute.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Read-only permissions are allowed for any request.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.user == request.user
+
+class IsVendorOrStaffOrStaffOnly(permissions.BasePermission):
+    """
+    Allows authenticated vendors and staff to write, while allowing all others read-only.
+    """
+    def has_permission(self, request, view):
         # Read-only access is allowed for all users (including anonymous).
         if request.method in permissions.SAFE_METHODS:
             return True
-        # Only allow authenticated users for write actions
-        return request.user and request.user.is_authenticated
+        # Write permissions are only allowed to vendors and staff.        
+        return request.user and (request.user.is_staff or request.user.role == 'VENDOR')
 
     def has_object_permission(self, request, view, obj):
-        # Staff users can do anything
-        if request.user and request.user.is_staff:
-            return True
-        
-        # Owners can view, edit, or delete their own objects
+        # Read permissions are allowed to any request.
         if request.method in permissions.SAFE_METHODS:
-            return obj.user == request.user
-        
-        return getattr(obj, "user", None) == request.user
+            return True
+        # Staff can edit any product.
+        if request.user.is_staff:
+            return True
+        # Vendors can only edit their own products.
+        return obj.vendor == request.user
         
