@@ -26,7 +26,7 @@ from rest_framework_simplejwt.token_blacklist.models import (
     )
 
 
-from .serializers import (
+from apps.users.api.serializers import (
     RegisterSerializer, 
     LoginSerializer, 
     UserSerializer

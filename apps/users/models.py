@@ -8,6 +8,13 @@ class User(AbstractUser):
     Custom User Model extending Django's AbstractUser. 
     We can add extra fields as needed.
     """
+    class Roles(models.TextChoices):
+        USER = "USER", "User"
+        VENDOR = "VENDOR", "Vendor"
+        STAFF = "STAFF", "Staff"
+        SUPERADMIN = "SUPERADMIN", "Superadmin"
+
+    role = models.CharField(max_length=50, choices=Roles.choices, default=Roles.USER)    
     display_name = models.CharField(max_length=255, blank=True, null=True)
     is_email_verified = models.BooleanField(default=False)
     failed_login_attempts = models.PositiveIntegerField(default=0)
