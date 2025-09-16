@@ -113,3 +113,55 @@ class AddressSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "user", "state", "country", "created_at", "updated_at"]
+    
+    def validate(self, attrs):
+        """
+         Extra validation:
+        - Ensure `recipient_name`, `street_address`, `city`, `postal_code` exist.
+        - Prevent exact duplicate addresses for the same user.
+        """
+        request = self.context.get("request")
+        if request is None:
+            raise serializers.ValidationError("Request is required in serializer context.")
+        # determine user-target: user_id (staff) or request.user
+        user = None 
+        if "user" in attrs and attrs["user"]:
+            # shouldn't happen because user is read-only; user_id is used for write
+            user = attrs["user"]
+        
+        user_id = self.initial_data.get("user_id")
+        if user_id and request.user.is_staff:
+            # allowed: staff can pass user_id to create on behalf of other users
+            user = attrs.get("user") # handled by `user_id` -> `user`
+        
+        else:
+            user = request.user 
+        
+        # required fields check - Django model enforces but nicer messages here
+        required_fields = ["recipient_name", "street_address", "city", "postal_code", "country"]
+        missing_fields = [f for f in required_fields if not attrs.get(f) and not (f == "country" and "country_id" in self.initial_data)]
+        if missing_fields:
+            raise serializers.ValidationError({ "detail": f"Missing required fields: {', '.join(missing_fields)}"})
+        
+        # Duplicate exact address prevention (unique-ish)
+        # Compose a lookup using incoming values or existing instance values
+        street = attrs.get("street_address") or getattr(self.instance, "street_address", "")
+        city = attrs.get("city") or getattr(self.instance, "city", "")
+        postal = attrs.get("postal_code") or getattr(self.instance, "postal_code", "")
+        country = attrs.get("country") or getattr(self.instance, "country", None)
+        address_type = attrs.get("address_type") or getattr(self.instance, "address_type", None)
+        # If country is a PK relation via write field it will be present in attrs['country'] due to source mapping.
+
+        if country is None:
+            # country might be provided via country_id; serializer already maps that into attrs['country'].
+            country = None
+
+        # Build queryset and exclude self if updating
+        qs = Address.objects.filter(user=user, street_address__iexact=street.strip(), city__iexact=city.strip(),
+        postal_code__iexact=postal.strip(), country=country, address_type=address_type)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("An identical address already exists for this user and address type.")
+
+        return attrs
