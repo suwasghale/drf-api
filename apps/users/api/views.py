@@ -71,3 +71,10 @@ class AddressViewSet(viewsets.ModelViewSet):
         if self.action in ["list", "retrieve", "create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated()]
         return super().get_permissions()
+    
+    def get_queryset(self):
+        """Limit normal users to their own addresses."""
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(user=user)
