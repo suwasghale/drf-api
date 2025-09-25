@@ -35,4 +35,29 @@ class StateViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ["country__id"]
     search_fields = ["name"]
     ordering_fields = ["name"]
-    permission_classes = []
+    permission_classes = []  # anyone can read
+
+
+class AddressViewSet(viewsets.ModelViewSet):
+    """
+    Address endpoints:
+    - list:       GET /addresses/             (user → own, staff → all)
+    - retrieve:   GET /addresses/{id}/
+    - create:     POST /addresses/            (auto-assigns request.user, staff can assign user_id)
+    - update:     PUT/PATCH /addresses/{id}/
+    - destroy:    DELETE /addresses/{id}/
+    - default:    GET /addresses/default/     (get current default)
+    - set_default:POST /addresses/set-default/ { "address_id": <id> }
+
+    Features:
+    - staff can manage addresses for any user
+    - duplicate prevention handled at serializer-level
+    - atomic handling of default addresses
+    """
+    queryset = Address.objects.select_related("country", "state", "user").all()
+    serializer_class = AddressSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["address_type", "city", "country__id", "is_default"]
+    search_fields = ["street_address", "recipient_name", "city"]
+    ordering_fields = ["created_at", "city", "is_default"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
