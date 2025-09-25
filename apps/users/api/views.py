@@ -61,3 +61,13 @@ class AddressViewSet(viewsets.ModelViewSet):
     search_fields = ["street_address", "recipient_name", "city"]
     ordering_fields = ["created_at", "city", "is_default"]
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def get_permissions(self):
+        """
+        Dynamic permissions:
+        - Authenticated users can CRUD their own addresses
+        - Staff / superadmins can manage all
+        """
+        if self.action in ["list", "retrieve", "create", "update", "partial_update", "destroy"]:
+            return [IsAuthenticated()]
+        return super().get_permissions()
