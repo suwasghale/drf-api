@@ -92,3 +92,16 @@ class AddressViewSet(viewsets.ModelViewSet):
                 if replacement:
                     replacement.is_default = True
                     replacement.save(update_fields=["is_default"])
+
+
+    @action(detail=False, methods=["get"], url_path="default", permission_classes=[IsAuthenticated])
+    def default(self, request):
+        """
+        Fetch the user's default address.
+        """
+        addr = Address.objects.filter(user=request.user, is_default=True).first()
+        if not addr:
+            return Response({"detail": "No default address set"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(self.get_serializer(addr).data)
+
+   
