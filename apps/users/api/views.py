@@ -22,3 +22,17 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all().order_by("name")
     serializer_class = CountrySerializer
     permission_classes = []  # anyone can read
+
+
+class StateViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    States: public read-only, filterable by country.
+    - Example: GET /api/v2/states/?country=<country_id>
+    """
+    queryset = State.objects.select_related("country").all().order_by("name")
+    serializer_class = StateSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["country__id"]
+    search_fields = ["name"]
+    ordering_fields = ["name"]
+    permission_classes = []
