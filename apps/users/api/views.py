@@ -105,3 +105,29 @@ class AddressViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(addr).data)
 
    
+
+    @action(detail=False, methods=["post"], url_path="set-default", permission_classes=[IsAuthenticated])
+    def set_default(self, request):
+        """
+        Set an address as default.
+        Payload: { "address_id": <id> }
+        """
+        address_id = request.data.get("address_id")
+        if not address_id:
+            return Response({"detail": "address_id required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            address = Address.objects.get(pk=address_id)
+        except Address.DoesNotExist:
+            return Response({"detail": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Ensure ownership unless staff/superadmin
+        if not (request.user.is_staff or request.user.is_superuser or address.user == request.user):
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        with transaction.atomic():
+            Address.objects.filter(user=address.user, is_default=True).exclude(pk=address.pk).update(is_default=False)
+            address.is_default = True
+            address.save(update_fields=["is_default"])
+
+        return Response(self.get_serializer(address).data, status=status.HTTP_200_OK)
