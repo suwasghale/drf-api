@@ -78,3 +78,17 @@ class AddressViewSet(viewsets.ModelViewSet):
         if user.is_staff or user.is_superuser:
             return self.queryset
         return self.queryset.filter(user=user)
+    
+    def perform_destroy(self, instance):
+        """
+        If deleting a default address, promote another address of the same user to default.
+        """
+        user = instance.user
+        was_default = instance.is_default
+        with transaction.atomic():
+            instance.delete()
+            if was_default:
+                replacement = Address.objects.filter(user=user).order_by("-created_at").first()
+                if replacement:
+                    replacement.is_default = True
+                    replacement.save(update_fields=["is_default"])
