@@ -2,6 +2,9 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 from django.conf import settings
 from apps.addresses.utils.default_country import get_default_country
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 # Create your models here.
 
 # A dedicated model for countries
@@ -76,28 +79,3 @@ class Address(models.Model):
         
     def __str__(self):
         return f"{self.recipient_name} - {self.street_address}, {self.city}"
-
-class UserActivityLog(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
-    action = models.CharField(max_length=255)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    # added
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.TextField(null=True, blank=True)
-    location = models.CharField(max_length=255, null=True, blank=True)
-    extra_data = models.JSONField(default= dict, blank=True)
-    outcome = models.CharField(max_length=20, default="SUCCESS", choices=[
-        ("SUCCESS", "Success"),
-        ("FAILURE", "Failure"),
-        ("BLOCKED", "Blocked")
-    ])
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['user', 'timestamp']),
-        ]
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"{self.user.username} - {self.action} at {self.timestamp}"
-
