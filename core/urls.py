@@ -39,10 +39,10 @@ urlpatterns = [
     path('api/v1/', include('apps.product.urls')),
 
     # users
-    path('api/v1/', include('apps.users.urls')),
+    path('api/v1/', include('apps.users.api.urls')),
 
     # addresses
-    path('api/v1/', include('apps.addresses.urls')),
+    path('api/v1/', include('apps.addresses.api.urls')),
 
     # wishlists
     path('api/v1/', include('apps.wishlist.api.urls')),
