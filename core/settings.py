@@ -121,14 +121,23 @@ SIMPLE_JWT = {
 }
 # drf-spectacular
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'E-commerce API',
-    'DESCRIPTION': 'Full Api Documentation for the E-commerce project',
+    'TITLE': 'GadgetHub API',
+    'DESCRIPTION': 'Advanced eCommerce API built with Django REST Framework. Includes authentication, product, order, payment, and shipping management.',
     'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-    # OTHER SETTINGS
+    'SERVE_INCLUDE_SCHEMA': False,  # to avoid schema duplication in swagger-ui
+    'SCHEMA_PATH_PREFIX': '/api/v1',  # optional, keeps your API docs neat
+
     # jwt integration
     'SECURITY': [{'BearerAuth': []}],
+
+    # Optional but useful:
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'COMPONENT_SPLIT_REQUEST': True,   # split request/response body schemas
+    'SORT_OPERATIONS': True,
+    'SORT_TAGS': True,
+    'POSTPROCESSING_HOOKS': [],
 }
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
