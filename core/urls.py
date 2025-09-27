@@ -34,8 +34,15 @@ from drf_spectacular.views import (
     )
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # products
     path('api/v1/', include('apps.product.urls')),
+
+    # users
     path('api/v1/', include('apps.users.urls')),
+
+    # addresses
+    path('api/v1/', include('apps.addresses.urls')),
 
     # wishlists
     path('api/v1/', include('apps.wishlist.api.urls')),
