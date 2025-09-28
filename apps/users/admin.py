@@ -32,7 +32,56 @@ class UserActivityLogInline(admin.TabularInline):
         qs = super().get_queryset(request)
         return qs.order_by("-timestamp")[:10]
     
-    
-admin.site.register(User)
+# ✅ Custom User Admin
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    list_display = (
+        "username",
+        "email",
+        "role",
+        "is_active",
+        "is_email_verified",
+        "is_staff",
+        "last_login",
+        "date_joined",
+    )
+    list_filter = ("role", "is_email_verified", "is_staff", "is_superuser", "is_active")
+    search_fields = ("username", "email", "display_name")
+    ordering = ("username",)
+    list_per_page = 30
+
+    inlines = [PasswordHistoryInline, UserActivityLogInline]
+
+    readonly_fields = (
+        "last_login",
+        "date_joined",
+        "failed_login_attempts",
+        "last_failed_login_attempt",
+    )
+
+    fieldsets = (
+        ("Login Info", {
+            "fields": ("username", "password")
+        }),
+        ("Personal Info", {
+            "fields": ("display_name", "email", "first_name", "last_name")
+        }),
+        ("Roles & Permissions", {
+            "fields": ("role", "is_active", "is_staff", "is_superuser", "groups", "user_permissions")
+        }),
+        ("Verification & Security", {
+            "fields": (
+                "is_email_verified",
+                "failed_login_attempts",
+                "last_failed_login_attempt",
+            )
+        }),
+        ("Timestamps", {
+            "fields": ("last_login", "date_joined"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
 admin.site.register(UserActivityLog)
 admin.site.register(PasswordHistory)
