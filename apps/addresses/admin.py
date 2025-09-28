@@ -92,3 +92,9 @@ class AddressAdmin(admin.ModelAdmin):
             "classes": ("collapse",)
         }),
     )
+    def get_queryset(self, request):
+        """
+        Optimize queryset for admin — select related fields to reduce DB hits.
+        """
+        qs = super().get_queryset(request)
+        return qs.select_related("user", "country", "state")
