@@ -1,12 +1,21 @@
 from django.contrib import admin
 from apps.addresses.models import Country, State, Address
 # register your models here.
+
+# ✅ Inline model for State (editable inside Country)
+class StateInline(admin.TabularInline):
+    model = State
+    extra = 1  # show 1 empty form by default
+    fields = ("name",)
+    show_change_link = True
+    ordering = ("name",)
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "iso_code", "phone_code", "created_at", "updated_at")
     search_fields = ("name", "iso_code")
     ordering = ("name",)
     list_per_page = 30
+    inlines = [StateInline]  # ✅ add state inline
 
     # if you have timestamps in the model
     readonly_fields = ("created_at", "updated_at")
