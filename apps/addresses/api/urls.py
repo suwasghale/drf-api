@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from apps.users.api.views import CountryViewSet, StateViewSet, AddressViewSet
+from apps.addresses.api.views import CountryViewSet, StateViewSet, AddressViewSet
 
 # Create router instance
 router = DefaultRouter()

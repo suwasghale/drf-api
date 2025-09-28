@@ -6,13 +6,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
-from apps.users.models import Country, State, Address
-from apps.users.api.serializers import (
+from apps.addresses.models import Country, State, Address
+from apps.addresses.api.serializers import (
     CountrySerializer,
     StateSerializer,
     AddressSerializer,
 )
-from apps.users.api.permissions import IsOwner, IsVendorOrStaffOrReadOnly, IsStaffOrSuperAdmin, CanViewOrder
+
 
 class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     """
