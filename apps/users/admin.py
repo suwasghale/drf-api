@@ -105,4 +105,16 @@ class UserActivityLogAdmin(admin.ModelAdmin):
     show_full_result_count = False
 
 
-admin.site.register(PasswordHistory)
+# ✅ Password History (read-only)
+@admin.register(PasswordHistory)
+class PasswordHistoryAdmin(admin.ModelAdmin):
+    list_display = ("user", "timestamp")
+    list_filter = ("timestamp",)
+    search_fields = ("user__username",)
+    ordering = ("-timestamp",)
+    readonly_fields = ("user", "password_hash", "timestamp")
+    list_select_related = ("user",)
+    list_per_page = 30
+    show_full_result_count = False
+    verbose_name_plural = "Password Change History"
+    verbose_name = "Password Change History"
