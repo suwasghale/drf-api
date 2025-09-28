@@ -20,5 +20,26 @@ class CountryAdmin(admin.ModelAdmin):
             "classes": ("collapse",)
         }),
     )
-admin.site.register(State)
+
+@admin.register(State)
+class StateAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "country", "created_at", "updated_at")
+    search_fields = ("name", "country__name")
+    list_filter = ("country",)
+    ordering = ("country", "name")
+    list_select_related = ("country",)
+    list_per_page = 30
+
+    readonly_fields = ("created_at", "updated_at")
+
+    fieldsets = (
+        (None, {
+            "fields": ("country", "name")
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+
 admin.site.register(Address)
