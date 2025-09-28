@@ -83,5 +83,26 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
-admin.site.register(UserActivityLog)
+# ✅ User Activity Log (read-only)
+@admin.register(UserActivityLog)
+class UserActivityLogAdmin(admin.ModelAdmin):
+    list_display = ("user", "action", "timestamp", "ip_address", "outcome")
+    list_filter = ("outcome", "timestamp", "user__role")
+    search_fields = ("user__username", "action", "ip_address", "location")
+    ordering = ("-timestamp",)
+    list_select_related = ("user",)
+    readonly_fields = (
+        "user",
+        "action",
+        "timestamp",
+        "ip_address",
+        "user_agent",
+        "location",
+        "outcome",
+        "extra_data",
+    )
+    list_per_page = 30
+    show_full_result_count = False
+
+
 admin.site.register(PasswordHistory)
