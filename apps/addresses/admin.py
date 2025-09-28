@@ -42,4 +42,53 @@ class StateAdmin(admin.ModelAdmin):
         }),
     )
 
-admin.site.register(Address)
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "recipient_name",
+        "street_address",
+        "city",
+        "state",
+        "country",
+        "postal_code",
+        "address_type",
+        "is_default",
+        "created_at",
+    )
+    list_filter = ("country", "state", "address_type", "is_default")
+    search_fields = (
+        "user__username",
+        "recipient_name",
+        "street_address",
+        "city",
+        "postal_code",
+    )
+    autocomplete_fields = ("user", "country", "state")
+    list_select_related = ("user", "country", "state")
+    ordering = ("-created_at",)
+    list_per_page = 30
+
+    readonly_fields = ("created_at", "updated_at")
+
+    fieldsets = (
+        ("User & Recipient Info", {
+            "fields": ("user", "recipient_name", "phone_number", "email")
+        }),
+        ("Address Details", {
+            "fields": (
+                "street_address",
+                "city",
+                "state",
+                "country",
+                "postal_code",
+                "address_type",
+                "is_default"
+            )
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
