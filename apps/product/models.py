@@ -33,14 +33,33 @@ class Category(models.Model):
 
 
 # product 
-class Product (models.Model):
+class Product(models.Model):
+    """
+    Core product model representing a single sellable item.
+    """
+    sku = models.CharField(max_length=100, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    description = models.TextField()
+    slug = models.SlugField(max_length=255, unique=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
+
+    short_description = models.CharField(max_length=300, blank=True)
+    description = models.TextField(blank=True)
+    
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.IntegerField(default=0)
-    image = models.FileField(upload_to='uploads/', blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)    
+    old_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    discount_percentage = models.PositiveIntegerField(default=0)
+
+    stock = models.PositiveIntegerField(default=0)
+    is_available = models.BooleanField(default=True)
+
+    brand = models.CharField(max_length=100, blank=True, null=True)
+    warranty = models.CharField(max_length=255, blank=True, null=True)
+    free_shipping = models.BooleanField(default=True)
+
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    gallery = models.JSONField(default=list, blank=True)  # for multiple images
+
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
