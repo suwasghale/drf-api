@@ -75,5 +75,19 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+     # ⚙️ Options
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["sku", "slug"]),
+            models.Index(fields=["category", "is_available"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        """Automatically generate slug if missing."""
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.sku})"
