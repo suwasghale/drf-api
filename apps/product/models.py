@@ -91,3 +91,19 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.sku})"
+
+
+    # 🧮 Dynamic Calculations
+    @property
+    def discount_amount(self):
+        """Calculate discount value dynamically."""
+        if self.old_price and self.old_price > self.price:
+            return self.old_price - self.price
+        elif self.discount_percentage > 0:
+            return (self.price * self.discount_percentage) / 100
+        return 0
+
+    @property
+    def final_price(self):
+        """Get the price after discount."""
+        return self.price - self.discount_amount
