@@ -107,3 +107,29 @@ class Product(models.Model):
     def final_price(self):
         """Get the price after discount."""
         return self.price - self.discount_amount
+    
+# product specification model
+class ProductSpecification(models.Model):
+    """
+    Stores technical or descriptive specifications for each product.
+    Example: CPU = Ryzen 7 7735HS, RAM = 16GB DDR5, Display = 165Hz
+    """
+
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="specifications"
+    )
+    key = models.CharField(max_length=255)     # Example: "CPU", "RAM", "Display"
+    value = models.TextField()                 # Example: "Ryzen 7 7735HS"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["product", "key"]),
+        ]
+        verbose_name = "Product Specification"
+        verbose_name_plural = "Product Specifications"
+        ordering = ["product", "key"]
+
+    def __str__(self):
+        return f"{self.product.name} - {self.key}: {self.value}"
