@@ -1,15 +1,36 @@
 from django.db import models
 from rest_framework.permissions import AllowAny
+from django.utils.text import slugify
 
 # Create your models here.
 # category
 class Category(models.Model):
-    name = models.CharField(max_length=200)
+    """
+    Represents a product category (e.g., Laptops, Headphones, Mobiles).
+    Supports nested categories using self-referencing 'parent'.
+    """
+    name = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=255, unique=True)
+    parent = models.ForeignKey(
+        "self", on_delete=models.CASCADE, 
+        related_name="children", null=True, blank=True
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name_plural = "Categories"
+        ordering = ["name"]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return self.name
+        return f"{self.name}"
+
 
 # product 
 class Product (models.Model):
