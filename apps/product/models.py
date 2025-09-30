@@ -174,3 +174,11 @@ class Review(models.Model):
     # 📅 Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["product", "rating"]),
+            models.Index(fields=["user", "created_at"]),
+        ]
+        unique_together = ("user", "product")  # Each user can review a product only once
