@@ -182,3 +182,17 @@ class Review(models.Model):
             models.Index(fields=["user", "created_at"]),
         ]
         unique_together = ("user", "product")  # Each user can review a product only once
+
+    def __str__(self):
+        return f"{self.product.name} - {self.user.username} ({self.rating}⭐)"
+
+    @property
+    def short_comment(self):
+        """Truncate comment for admin or preview."""
+        return (self.comment[:60] + "...") if self.comment and len(self.comment) > 60 else self.comment
+
+    @property
+    def stars(self):
+        """Return star icons for UI rendering."""
+        return "★" * self.rating + "☆" * (5 - self.rating)
+
