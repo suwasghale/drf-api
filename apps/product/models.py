@@ -133,3 +133,44 @@ class ProductSpecification(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.key}: {self.value}"
+
+
+class Review(models.Model):
+    """
+    Represents a user review for a specific product.
+    Includes rating, text feedback, optional media, and moderation fields.
+    """
+
+    # 👤 User who made the review
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="product_reviews"
+    )
+
+    # 🎯 Product being reviewed
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+
+    # ⭐ Rating: integer 1–5
+    rating = models.PositiveSmallIntegerField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        help_text="Rating from 1 (worst) to 5 (best)"
+    )
+
+    # 💬 Optional review text
+    comment = models.TextField(blank=True)
+
+    # 🖼️ Optional review images (like product photos)
+    images = models.JSONField(default=list, blank=True)  # e.g. ["review1.jpg", "review2.png"]
+
+    # ✅ Moderation / status
+    is_approved = models.BooleanField(default=True)
+    is_verified_purchase = models.BooleanField(default=False)
+
+    # 📅 Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
