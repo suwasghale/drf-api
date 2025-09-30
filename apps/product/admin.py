@@ -69,3 +69,13 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     filter_horizontal = ()
     actions = ["mark_as_available", "mark_as_unavailable"]
+
+    # 🖼️ Custom method for thumbnail preview
+    def thumbnail_preview(self, obj):
+        """
+        Displays a small thumbnail preview in the admin list.
+        """
+        if obj.thumbnail:
+            return format_html('<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" />', obj.thumbnail.url)
+        return "No Image"
+    thumbnail_preview.short_description = "Preview"
