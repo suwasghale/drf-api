@@ -14,5 +14,15 @@ class ProductSpecificationInline(admin.TabularInline):
     fields = ("key", "value")
     show_change_link = True
 # Register your models here.
-admin.site.register(Category)
+# -------------------------------
+# Category Admin
+# -------------------------------
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "created_at", "updated_at")
+    search_fields = ("name",)
+    prepopulated_fields = {"slug": ("name",)}
+    ordering = ("name",)
+
+    
 admin.site.register(Product)
