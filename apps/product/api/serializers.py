@@ -1,14 +1,29 @@
 from rest_framework import serializers
-from ..models import Category, Product
+from django.db.models import Avg, Count
+from apps.product.models import Category, Product, ProductSpecification, Review
 
 
+# 🏷 CATEGORY SERIALIZER
 class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category 
-        fields = '__all__'
+    """
+    Serializes category with support for nested children.
+    Example:
+    {
+        "name": "Laptops",
+        "slug": "laptops",
+        "children": [
+            { "name": "Gaming Laptops", ... }
+        ]
+    }
+    """
+    children = serializers.SerializerMethodField()
 
-class ProductSerializer(serializers.ModelSerializer):
-    # category = CategorySerializer(read_only=True)
     class Meta:
-        model = Product 
-        fields = '__all__'
+        model = Category
+        fields = ["id", "name", "slug", "parent", "children"]
+
+    def get_children(self, obj):
+        """Recursively serialize subcategories."""
+        if obj.children.exists():
+            return CategorySerializer(obj.children.all(), many=True).data
+        return []
