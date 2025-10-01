@@ -1,5 +1,5 @@
 from rest_framework import generics 
-from .serializers import *
+from .api.serializers import *
 from .models import *
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
