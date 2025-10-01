@@ -27,3 +27,17 @@ class CategorySerializer(serializers.ModelSerializer):
         if obj.children.exists():
             return CategorySerializer(obj.children.all(), many=True).data
         return []
+
+
+# ⚙️ PRODUCT SPECIFICATION SERIALIZER
+class ProductSpecificationSerializer(serializers.ModelSerializer):
+    """
+    Serializes product technical details.
+    Example:
+    { "key": "RAM", "value": "16GB DDR5" }
+    """
+
+    class Meta:
+        model = ProductSpecification
+        fields = ["key", "value"]
+
