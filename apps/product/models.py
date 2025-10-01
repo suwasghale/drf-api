@@ -1,6 +1,7 @@
 from django.db import models
 from rest_framework.permissions import AllowAny
 from django.utils.text import slugify
+from django.conf import settings
 
 # Create your models here.
 # category
