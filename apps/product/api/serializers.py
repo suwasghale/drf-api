@@ -106,3 +106,19 @@ class ProductSerializer(serializers.ModelSerializer):
             "review_count",
             "created_at",
         ]
+        
+     # 🧮 Computed methods
+    def get_discount_amount(self, obj):
+        return obj.discount_amount
+
+    def get_final_price(self, obj):
+        return obj.final_price
+
+    def get_avg_rating(self, obj):
+        """Calculate average rating dynamically."""
+        avg = obj.reviews.aggregate(avg=Avg("rating"))["avg"]
+        return round(avg, 1) if avg else 0.0
+
+    def get_review_count(self, obj):
+        """Count total approved reviews."""
+        return obj.reviews.filter(is_approved=True).count()
