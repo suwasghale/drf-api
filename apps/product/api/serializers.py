@@ -41,3 +41,22 @@ class ProductSpecificationSerializer(serializers.ModelSerializer):
         model = ProductSpecification
         fields = ["key", "value"]
 
+# ⭐ REVIEW SERIALIZER
+class ReviewSerializer(serializers.ModelSerializer):
+    """
+    Serializes product reviews with username and rating info.
+    """
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = Review
+        fields = [
+            "id",
+            "username",
+            "rating",
+            "comment",
+            "images",
+            "is_verified_purchase",
+            "created_at",
+        ]
+        read_only_fields = ["created_at", "is_verified_purchase"]
