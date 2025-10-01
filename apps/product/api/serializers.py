@@ -60,3 +60,49 @@ class ReviewSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["created_at", "is_verified_purchase"]
+
+# 🛍 PRODUCT SERIALIZER
+class ProductSerializer(serializers.ModelSerializer):
+    """
+    Main product serializer with nested category, specifications, and reviews.
+    Adds computed fields like final_price, discount_amount, avg_rating, and review_count.
+    """
+
+    category = CategorySerializer(read_only=True)
+    specifications = ProductSpecificationSerializer(many=True, read_only=True)
+    reviews = ReviewSerializer(many=True, read_only=True)
+
+    # Computed fields
+    final_price = serializers.SerializerMethodField()
+    discount_amount = serializers.SerializerMethodField()
+    avg_rating = serializers.SerializerMethodField()
+    review_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "sku",
+            "name",
+            "slug",
+            "description",
+            "brand",
+            "category",
+            "price",
+            "old_price",
+            "discount_percentage",
+            "discount_amount",
+            "final_price",
+            "stock",
+            "is_available",
+            "warranty",
+            "free_shipping",
+            "expected_delivery",
+            "thumbnail",
+            "images",
+            "specifications",
+            "reviews",
+            "avg_rating",
+            "review_count",
+            "created_at",
+        ]
