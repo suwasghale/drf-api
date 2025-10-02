@@ -70,3 +70,12 @@ class ProductSpecificationViewSet(viewsets.ModelViewSet):
     queryset = ProductSpecification.objects.select_related("product").all()
     serializer_class = ProductSpecificationSerializer
     permission_classes = [permissions.IsAdminUser]
+
+# ⭐ REVIEW VIEWSET
+class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    Manages product reviews.
+    Authenticated users can create reviews.
+    """
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
