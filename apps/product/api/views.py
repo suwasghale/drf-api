@@ -79,3 +79,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        """Filter reviews by product."""
+        product_slug = self.request.query_params.get("product")
+        qs = Review.objects.select_related("product", "user").filter(is_approved=True)
+        if product_slug:
+            qs = qs.filter(product__slug=product_slug)
+        return qs
