@@ -60,3 +60,13 @@ class ProductViewSet(viewsets.ModelViewSet):
                 Prefetch("reviews", queryset=Review.objects.filter(is_approved=True))
             )
         )
+
+# ⚙️ PRODUCT SPECIFICATION VIEWSET
+class ProductSpecificationViewSet(viewsets.ModelViewSet):
+    """
+    Manages specifications tied to a product.
+    Typically admin-only.
+    """
+    queryset = ProductSpecification.objects.select_related("product").all()
+    serializer_class = ProductSpecificationSerializer
+    permission_classes = [permissions.IsAdminUser]
