@@ -1,0 +1,25 @@
+from rest_framework import viewsets, filters, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg, Count
+from apps.product.models import Category, Product, ProductSpecification, Review
+from apps.product.api.serializers import (
+    CategorySerializer, 
+    ProductSpecificationSerializer,
+    ProductSerializer,
+    ReviewSerializer
+)
+
+# category viewset
+class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    Provides CRUD operations for product categories.
+    Supports nested category serialization.
+    """
+    queryset = Category.objects.prefetch_related('children').all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = "slug" # Use slug for URL lookups like /categories/laptops/
+
+    def get_queryset(self):
+        """Return root categories if no parent specified."""
+        return Category.objects.filter(parent__isnull=True).prefetch_related('children')
