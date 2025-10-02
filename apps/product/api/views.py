@@ -87,3 +87,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if product_slug:
             qs = qs.filter(product__slug=product_slug)
         return qs
+
+    def perform_create(self, serializer):
+        """
+        Attach logged-in user automatically.
+        Prevent multiple reviews per product per user (handled at DB level).
+        """
+        serializer.save(user=self.request.user)
