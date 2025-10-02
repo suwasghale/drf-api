@@ -23,3 +23,29 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Return root categories if no parent specified."""
         return Category.objects.filter(parent__isnull=True).prefetch_related('children')
+
+
+# 🛍 PRODUCT VIEWSET
+class ProductViewSet(viewsets.ModelViewSet):
+    """
+    Handles CRUD operations for products with filtering, search, and ordering.
+    """
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = "slug"
+
+    # Filtering & Searching
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = {
+        "category__slug": ["exact"],
+        "brand": ["exact", "icontains"],
+        "is_available": ["exact"],
+        "price": ["gte", "lte"],
+    }
+    search_fields = ["name", "sku", "brand", "description"]
+    ordering_fields = ["price", "created_at", "stock"]
+    ordering = ["-created_at"]
