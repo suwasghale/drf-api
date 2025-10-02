@@ -1,6 +1,6 @@
 from rest_framework import viewsets, filters, permissions
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Prefetch
 from apps.product.models import Category, Product, ProductSpecification, Review
 from apps.product.api.serializers import (
     CategorySerializer, 
@@ -49,3 +49,14 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ["name", "sku", "brand", "description"]
     ordering_fields = ["price", "created_at", "stock"]
     ordering = ["-created_at"]
+
+    def get_queryset(self):
+        """Optimize queryset for performance."""
+        return (
+            Product.objects.filter(is_available=True)
+            .select_related("category")
+            .prefetch_related(
+                "specifications",
+                Prefetch("reviews", queryset=Review.objects.filter(is_approved=True))
+            )
+        )
