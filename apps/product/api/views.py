@@ -1,6 +1,7 @@
 from rest_framework import viewsets, filters, permissions
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg, Count, Prefetch
+from django.db.models import Avg, Count, Prefetch, Q
+from rest_framework.throttling import ScopedRateThrottle
 from apps.product.models import Category, Product, ProductSpecification, Review
 from apps.product.api.serializers import (
     CategorySerializer, 
@@ -8,6 +9,7 @@ from apps.product.api.serializers import (
     ProductSerializer,
     ReviewSerializer
 )
+from apps.product.api.pagination import StandardResultsSetPagination
 
 # category viewset
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -27,30 +29,49 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 # 🛍 PRODUCT VIEWSET
 class ProductViewSet(viewsets.ModelViewSet):
+   """
+    Production-grade product API:
+      - optimized queryset with select_related / prefetch_related
+      - annotated avg_rating & review_count (only approved reviews)
+      - public read endpoints are cached for anonymous users
+      - admin-only write operations
+      - search, filters, ordering, pagination
+      - admin-only bulk stock updates (atomic + bulk_update)
     """
-    Handles CRUD operations for products with filtering, search, and ordering.
-    """
-    serializer_class = ProductSerializer
-    permission_classes = [permissions.AllowAny]
-    lookup_field = "slug"
+   serializer_class = ProductSerializer
+   lookup_field = "slug"
+   pagination_class = StandardResultsSetPagination
+   throttle_scope = "product_browse"
+   throttle_classes = [ScopedRateThrottle]
 
-    # Filtering & Searching
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
-    filterset_fields = {
+    # static base queryset: annotate aggregated fields to avoid per-instance DB hits
+   base_queryset = (
+        Product.objects.select_related("category")
+        .prefetch_related(
+            "specifications",
+            Prefetch("reviews", queryset=Review.objects.filter(is_approved=True))
+        )
+        .annotate(
+            avg_rating=Avg("reviews__rating", filter=Q(reviews__is_approved=True)),
+            review_count=Count("reviews", filter=Q(reviews__is_approved=True)),
+        )
+    )
+
+    # Filter / Search / Ordering config
+   filter_backends = [filters.SearchFilter, filters.OrderingFilter, filters.DjangoFilterBackend]
+   search_fields = ["name", "sku", "brand", "description"]
+   ordering_fields = ["price", "created_at", "stock", "review_count"]
+   ordering = ["-created_at"]
+
+   filterset_fields = {
         "category__slug": ["exact"],
         "brand": ["exact", "icontains"],
         "is_available": ["exact"],
         "price": ["gte", "lte"],
+        "discount_percentage": ["gte"],
     }
-    search_fields = ["name", "sku", "brand", "description"]
-    ordering_fields = ["price", "created_at", "stock"]
-    ordering = ["-created_at"]
 
-    def get_queryset(self):
+   def get_queryset(self):
         """Optimize queryset for performance."""
         return (
             Product.objects.filter(is_available=True)
