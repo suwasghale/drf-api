@@ -71,6 +71,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         "discount_percentage": ["gte"],
     }
 
+ # -------- permissions --------
+   def get_permissions(self):
+        # read (list/retrieve/search) public
+        if self.action in ["list", "retrieve", "search", "discounted", "featured", "by_category"]:
+            return [permissions.AllowAny()]
+        # admin-only for create/update/delete/bulk operations
+        if self.action in ["create", "update", "partial_update", "destroy", "bulk_update_stock", "set_availability"]:
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
+
    def get_queryset(self):
         """Optimize queryset for performance."""
         return (
