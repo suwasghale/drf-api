@@ -81,16 +81,57 @@ class ProductViewSet(viewsets.ModelViewSet):
             return [permissions.IsAdminUser()]
         return [permissions.IsAuthenticated()]
 
+ # -------- dynamic queryset --------
    def get_queryset(self):
-        """Optimize queryset for performance."""
-        return (
-            Product.objects.filter(is_available=True)
-            .select_related("category")
-            .prefetch_related(
-                "specifications",
-                Prefetch("reviews", queryset=Review.objects.filter(is_approved=True))
+        """
+        Return optimized queryset with dynamic filters applied from query params.
+        Use annotated aggregate fields for avg_rating & review_count.
+        """
+        qs = self.base_queryset
+        request = getattr(self, "request", None)
+
+        # Public users should see only available products
+        if not request or not (request.user and request.user.is_staff):
+            qs = qs.filter(is_available=True)
+
+        # apply common query parameters
+        q = request.query_params.get("q") if request else None
+        if q:
+            # simple DB search; for heavy use switch to full-text or external search engine
+            qs = qs.filter(
+                Q(name__icontains=q) | Q(description__icontains=q) | Q(sku__icontains=q) | Q(brand__icontains=q)
             )
-        )
+
+        min_price = request.query_params.get("min_price")
+        max_price = request.query_params.get("max_price")
+        min_rating = request.query_params.get("min_rating")
+        brand = request.query_params.get("brand")
+        in_stock = request.query_params.get("in_stock")
+
+        if brand:
+            qs = qs.filter(brand__iexact=brand)
+        if min_price:
+            try:
+                qs = qs.filter(price__gte=float(min_price))
+            except (ValueError, TypeError):
+                pass
+        if max_price:
+            try:
+                qs = qs.filter(price__lte=float(max_price))
+            except (ValueError, TypeError):
+                pass
+        if min_rating:
+            try:
+                qs = qs.filter(avg_rating__gte=float(min_rating))
+            except (ValueError, TypeError):
+                pass
+        if in_stock is not None:
+            if in_stock.lower() in ("1", "true", "yes"):
+                qs = qs.filter(stock__gt=0)
+            elif in_stock.lower() in ("0", "false", "no"):
+                qs = qs.filter(stock__lte=0)
+
+        return qs.order_by(*self.ordering)
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
 class ProductSpecificationViewSet(viewsets.ModelViewSet):
