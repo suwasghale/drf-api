@@ -159,6 +159,21 @@ class ProductViewSet(viewsets.ModelViewSet):
             return resp
 
         return super().list(request, *args, **kwargs)
+   
+   def retrieve(self, request, *args, **kwargs):
+        # detail caching for anonymous users
+        slug = kwargs.get("slug") or kwargs.get("pk")
+        if not request.user.is_authenticated:
+            cache_key = f"product_detail:{slug}"
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return Response(cached)
+
+            resp = super().retrieve(request, *args, **kwargs)
+            cache.set(cache_key, resp.data, CACHE_TTL)
+            return resp
+
+        return super().retrieve(request, *args, **kwargs)
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
 class ProductSpecificationViewSet(viewsets.ModelViewSet):
