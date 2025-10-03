@@ -1,6 +1,11 @@
 from rest_framework import viewsets, filters, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Count, Prefetch, Q
+from django.core.cache import cache
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework.throttling import ScopedRateThrottle
 from apps.product.models import Category, Product, ProductSpecification, Review
 from apps.product.api.serializers import (
@@ -10,6 +15,9 @@ from apps.product.api.serializers import (
     ReviewSerializer
 )
 from apps.product.api.pagination import StandardResultsSetPagination
+
+# TTL for anonymous caching (seconds). Use a short TTL so updates propagate quickly.
+CACHE_TTL = 60 * 2  # 2 minutes
 
 # category viewset
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -132,6 +140,25 @@ class ProductViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(stock__lte=0)
 
         return qs.order_by(*self.ordering)
+
+    # ---------- caching for anonymous users ----------
+   def list(self, request, *args, **kwargs):
+        """
+        Cached for anonymous users. Cache key includes full path (querystring).
+        Admins & authenticated users get uncached, always fresh data.
+        """
+        if not request.user.is_authenticated:
+            cache_key = f"product_list:{request.get_full_path()}"
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return Response(cached)
+
+            resp = super().list(request, *args, **kwargs)
+            # store only serialized data (not the response object)
+            cache.set(cache_key, resp.data, CACHE_TTL)
+            return resp
+
+        return super().list(request, *args, **kwargs)
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
 class ProductSpecificationViewSet(viewsets.ModelViewSet):
