@@ -6,3 +6,5 @@ class ProductConfig(AppConfig):
     name = 'apps.product'
     label = 'product'
 
+    def ready(self):
+        import apps.product.signals  # Ensure signals are imported when the app is ready
