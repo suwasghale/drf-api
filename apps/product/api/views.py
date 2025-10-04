@@ -197,6 +197,18 @@ class ProductViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset().order_by("-review_count", "-created_at")[:12]
         serializer = ProductSerializer(qs, many=True, context={"request": request})
         return Response({"count": len(qs), "results": serializer.data})
+   
+   @action(detail=False, methods=["get"], url_path=r"by-category/(?P<category_slug>[^/.]+)")
+   def by_category(self, request, category_slug=None):
+        category = get_object_or_404(Category, slug=category_slug)
+        qs = self.get_queryset().filter(category=category)
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = ProductSerializer(page, many=True, context={"request": request})
+            return self.get_paginated_response(serializer.data)
+        serializer = ProductSerializer(qs, many=True, context={"request": request})
+        return Response({"category": category.name, "results": serializer.data})
+
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
 class ProductSpecificationViewSet(viewsets.ModelViewSet):
