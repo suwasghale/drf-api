@@ -175,6 +175,18 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return super().retrieve(request, *args, **kwargs)
 
+        # ---------- custom collection actions ----------
+   @action(detail=False, methods=["get"], url_path="discounted")
+   def discounted(self, request):
+        """List products with discounts > 0, paginated."""
+        qs = self.get_queryset().filter(discount_percentage__gt=0)
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = ProductSerializer(page, many=True, context={"request": request})
+            return self.get_paginated_response(serializer.data)
+        serializer = ProductSerializer(qs, many=True, context={"request": request})
+        return Response(serializer.data)
+
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
 class ProductSpecificationViewSet(viewsets.ModelViewSet):
     """
