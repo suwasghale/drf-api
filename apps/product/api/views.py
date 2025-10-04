@@ -253,6 +253,18 @@ class ProductViewSet(viewsets.ModelViewSet):
             cache.clear()
 
         return Response({"updated": len(to_update)})
+   
+   @action(detail=True, methods=["post"], url_path="set-availability", permission_classes=[permissions.IsAdminUser])
+   def set_availability(self, request, slug=None):
+        product = self.get_object()
+        is_available = request.data.get("is_available")
+        if is_available is None:
+            return Response({"detail": "is_available required"}, status=status.HTTP_400_BAD_REQUEST)
+        product.is_available = bool(is_available)
+        product.save(update_fields=["is_available", "updated_at"])
+        cache.delete(f"product_detail:{product.slug}")
+        cache.clear()
+        return Response({"detail": "ok"})
 
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
