@@ -1,12 +1,22 @@
-from django.urls import path 
-from .views import *
+from rest_framework.routers import DefaultRouter
+from django.urls import path, include
+
+from apps.product.api.views import (
+    CategoryViewSet,
+    ProductViewSet,
+    ProductSpecificationViewSet,
+    ReviewViewSet,
+)
+
+# Use DRF router for automatic RESTful route registration
+router = DefaultRouter()
+
+# Register viewsets
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'products', ProductViewSet, basename='product')
+router.register(r'specifications', ProductSpecificationViewSet, basename='product-specification')
+router.register(r'reviews', ReviewViewSet, basename='review')
+
 urlpatterns = [
-    # category endpoints
-    path('categories/',CategoryListView.as_view(), name = 'category_list' ),
-    path('categories/<int:pk>/',CategoryDetailView.as_view(), name = 'category_details' ),
-    path('categories/create/',CategoryCreateView.as_view(), name = 'create_category'),
-    path('categories/update/<int:pk>/',CategoryUpdateView.as_view(), name = 'update_category'),
-    path('categories/delete/<int:pk>/',CategoryDeleteView.as_view(), name = 'delete_category'),
-    # product endpoints
-    path('products/',ProductCreateListView.as_view(), name = 'product_list_create' ),
+    path('', include(router.urls)),
 ]
