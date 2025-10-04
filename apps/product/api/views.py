@@ -1,6 +1,9 @@
 from rest_framework import viewsets, filters, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Count, Prefetch, Q
+from  django.db import transaction
+from rest_framework import status
+from rest_framework.response import Response
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.conf import settings
@@ -217,6 +220,39 @@ class ProductViewSet(viewsets.ModelViewSet):
         """
         qs = self.get_queryset()  # get_queryset already accepts ?q=
         return self.list(request)
+
+ # ---------- admin-only bulk / detail actions ----------
+   @action(detail=False, methods=["post"], url_path="bulk-update-stock", permission_classes=[permissions.IsAdminUser])
+   def bulk_update_stock(self, request):
+        """
+        Payload: [{ "sku": "MP123", "stock": 10 }, ...]
+        Uses bulk_update and transaction for performance and atomicity.
+        """
+        updates = request.data
+        if not isinstance(updates, list):
+            return Response({"detail": "Expected a list"}, status=status.HTTP_400_BAD_REQUEST)
+
+        skus = [i.get("sku") for i in updates if i.get("sku")]
+        existing = {p.sku: p for p in Product.objects.filter(sku__in=skus)}
+        to_update = []
+        for item in updates:
+            sku = item.get("sku")
+            stock = item.get("stock")
+            if sku not in existing or stock is None:
+                continue
+            prod = existing[sku]
+            prod.stock = int(stock)
+            prod.is_available = prod.stock > 0
+            to_update.append(prod)
+
+        with transaction.atomic():
+            Product.objects.bulk_update(to_update, ["stock", "is_available", "updated_at"])
+
+            # invalidate cache (simple)
+            # NOTE: for django-redis you can use cache.delete_pattern('product_list:*')
+            cache.clear()
+
+        return Response({"updated": len(to_update)})
 
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
