@@ -186,6 +186,17 @@ class ProductViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = ProductSerializer(qs, many=True, context={"request": request})
         return Response(serializer.data)
+   
+   @action(detail=False, methods=["get"], url_path="featured")
+   def featured(self, request):
+        """
+        Featured products: fallback logic:
+         - If you have sales/metrics, use that.
+         - Here we pick top by review_count then created_at (fast).
+        """
+        qs = self.get_queryset().order_by("-review_count", "-created_at")[:12]
+        serializer = ProductSerializer(qs, many=True, context={"request": request})
+        return Response({"count": len(qs), "results": serializer.data})
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
 class ProductSpecificationViewSet(viewsets.ModelViewSet):
