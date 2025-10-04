@@ -208,6 +208,15 @@ class ProductViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = ProductSerializer(qs, many=True, context={"request": request})
         return Response({"category": category.name, "results": serializer.data})
+   
+   @action(detail=False, methods=["get"], url_path="search")
+   def search(self, request):
+        """
+        Exposes DB search as /products/search/?q=...
+        For production scale, use Elastic/OpenSearch or PostgreSQL full-text search.
+        """
+        qs = self.get_queryset()  # get_queryset already accepts ?q=
+        return self.list(request)
 
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
