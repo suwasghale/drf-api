@@ -52,3 +52,14 @@ class ShipmentViewSet(viewsets.ModelViewSet):
         response = super().update(request, *args, **kwargs)
         cache.delete(f"shipment_detail:{instance.id}")
         return response
+
+    def retrieve(self, request, *args, **kwargs):
+        """Retrieve with cache for better performance."""
+        shipment_id = kwargs.get("id")
+        cache_key = f"shipment_detail:{shipment_id}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+        response = super().retrieve(request, *args, **kwargs)
+        cache.set(cache_key, response.data, 60 * 2)  # 2 min TTL
+        return response
