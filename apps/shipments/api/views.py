@@ -41,3 +41,14 @@ class ShipmentViewSet(viewsets.ModelViewSet):
             raise PermissionError("Only admin can create shipments.")
 
         serializer.save(user=self.request.user)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        """
+        Update shipment details (e.g. courier, status, tracking number).
+        Automatically updates cache.
+        """
+        instance = self.get_object()
+        response = super().update(request, *args, **kwargs)
+        cache.delete(f"shipment_detail:{instance.id}")
+        return response
