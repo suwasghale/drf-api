@@ -21,3 +21,13 @@ class ShipmentViewSet(viewsets.ModelViewSet):
     queryset = Shipment.objects.select_related("order", "user").all()
     lookup_field = "id"
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Admins see all shipments.
+        Normal users see only their own shipments.
+        """
+        user = self.request.user
+        if user.is_staff:
+            return self.queryset
+        return self.queryset.filter(user=user)
