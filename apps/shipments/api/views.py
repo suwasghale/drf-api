@@ -31,3 +31,13 @@ class ShipmentViewSet(viewsets.ModelViewSet):
         if user.is_staff:
             return self.queryset
         return self.queryset.filter(user=user)
+
+    def perform_create(self, serializer):
+        """
+        When creating a shipment, auto-attach user from request.
+        Only staff (admins) can create shipments.
+        """
+        if not self.request.user.is_staff:
+            raise PermissionError("Only admin can create shipments.")
+
+        serializer.save(user=self.request.user)
