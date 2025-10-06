@@ -79,3 +79,11 @@ class Invoice(models.Model):
         self.status = Invoice.Statuses.ISSUED
         self.save(update_fields=["issued_at", "invoice_number", "status", "updated_at"])
 
+    def attach_pdf_bytes(self, filename: str, pdf_bytes: bytes):
+        """Save PDF bytes into the FileField (atomic)."""
+        if not filename.endswith(".pdf"):
+            filename = f"{filename}.pdf"
+        path = f"invoices/{self.issued_at.strftime('%Y/%m/%d') if self.issued_at else timezone.now().strftime('%Y/%m/%d')}/{filename}"
+        # Save using default storage
+        content = ContentFile(pdf_bytes)
+        self.pdf.save(path.split("/", 1)[-1], content, save=True)  # Save triggers file store and updates model
