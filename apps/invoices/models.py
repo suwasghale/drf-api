@@ -52,3 +52,13 @@ class Invoice(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = InvoiceQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-issued_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["invoice_number"]),
+            models.Index(fields=["order", "issued_at"]),
+        ]
+
+    def __str__(self):
+        return self.invoice_number or f"Invoice #{self.pk}"
