@@ -1,5 +1,6 @@
 from django.contrib import admin
 from apps.users.models import User, UserActivityLog, PasswordHistory
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 # Register your models here.
 # ✅ Inline: Show password history inside User detail
 class PasswordHistoryInline(admin.TabularInline):
