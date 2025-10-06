@@ -69,3 +69,13 @@ class Invoice(models.Model):
         """
         date = timezone.now().strftime("%Y%m%d")
         return f"INV{date}{self.pk:06d}"
+    
+    def mark_issued(self, issued_at=None):
+        if issued_at is None:
+            issued_at = timezone.now()
+        self.issued_at = issued_at
+        if not self.invoice_number:
+            self.invoice_number = self.generate_invoice_number()
+        self.status = Invoice.Statuses.ISSUED
+        self.save(update_fields=["issued_at", "invoice_number", "status", "updated_at"])
+
