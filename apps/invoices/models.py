@@ -62,3 +62,10 @@ class Invoice(models.Model):
 
     def __str__(self):
         return self.invoice_number or f"Invoice #{self.pk}"
+    
+    def generate_invoice_number(self):
+        """Create human-friendly invoice number once id exists.
+        Format: INVYYYYMMDD000001 (date + zero-padded id)
+        """
+        date = timezone.now().strftime("%Y%m%d")
+        return f"INV{date}{self.pk:06d}"
