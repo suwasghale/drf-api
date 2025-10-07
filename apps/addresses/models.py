@@ -9,8 +9,8 @@ User = get_user_model()
 
 # Define a base class for common timestamp fields
 class TimeStampedModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -18,8 +18,8 @@ class TimeStampedModel(models.Model):
 # A dedicated model for countries
 class Country(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True)
-    iso_code = models.CharField(max_length=2, unique=True)  # e.g., 'NP'
-    phone_code = models.CharField(max_length=2, unique=True)  # e.g., '+977'
+    iso_code = models.CharField(max_length=2, unique=True, null=True, blank=True)  # e.g., 'NP'
+    phone_code = models.CharField(max_length=2, unique=True, null=True, blank=True)  # e.g., '+977'
 
     def __str__(self):
         return self.name
