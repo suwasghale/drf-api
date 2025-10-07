@@ -7,16 +7,25 @@ User = get_user_model()
 
 # Create your models here.
 
+# Define a base class for common timestamp fields
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
 # A dedicated model for countries
-class Country(models.Model):
+class Country(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True)
-    code = models.CharField(max_length=2, unique=True)  # e.g., 'NP'
+    iso_code = models.CharField(max_length=2, unique=True)  # e.g., 'NP'
+    phone_code = models.CharField(max_length=2, unique=True)  # e.g., '+977'
 
     def __str__(self):
         return self.name
 
 # A dedicated model for states/regions within a country
-class State(models.Model):
+class State(TimeStampedModel):
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='states')
     name = models.CharField(max_length=120)
 
@@ -28,7 +37,7 @@ class State(models.Model):
         return self.name
 
 
-class Address(models.Model):
+class Address(TimeStampedModel):
     ADDRESS_TYPE_CHOICES = [
         ("billing", "Billing"),
         ("shipping", "Shipping"),
@@ -49,9 +58,6 @@ class Address(models.Model):
     state = models.ForeignKey(State, on_delete=models.SET_NULL, null=True, blank=True) # Optional relationships, preserving data after a link is broken.
 
     is_default = models.BooleanField(default=False, help_text="Designates this address as the user's primary. There can only be one primary address per user, and this must be managed by the application logic.")
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "Addresses"

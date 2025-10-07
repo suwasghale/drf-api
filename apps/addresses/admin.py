@@ -18,7 +18,7 @@ class CountryAdmin(admin.ModelAdmin):
     inlines = [StateInline]  # ✅ add state inline
 
     # if you have timestamps in the model
-    readonly_fields = ("created_at", "updated_at")
+    # readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
         (None, {
@@ -39,7 +39,7 @@ class StateAdmin(admin.ModelAdmin):
     list_select_related = ("country",)
     list_per_page = 30
 
-    readonly_fields = ("created_at", "updated_at")
+    # readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
         (None, {
@@ -79,7 +79,7 @@ class AddressAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
     list_per_page = 30
 
-    readonly_fields = ("created_at", "updated_at")
+    # readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
         ("User & Recipient Info", {
