@@ -36,7 +36,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # products
-    path('api/v1/', include('apps.product.urls')),
+    path('api/v1/', include('apps.product.api.urls')),
 
     # users
     path('api/v1/', include('apps.users.api.urls')),
