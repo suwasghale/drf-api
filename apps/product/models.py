@@ -11,7 +11,7 @@ class Category(models.Model):
     Supports nested categories using self-referencing 'parent'.
     """
     name = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, null=True)
     parent = models.ForeignKey(
         "self", on_delete=models.CASCADE, 
         related_name="children", null=True, blank=True
@@ -41,13 +41,13 @@ class Product(models.Model):
     """
 
     # 🏷️ Identification
-    sku = models.CharField(max_length=100, unique=True)  # e.g., MU12146
+    sku = models.CharField(max_length=100, unique=True, null=True, blank=True)  # e.g., MU12146
     name = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)  # e.g., "macbook-pro-16-2023"
 
     # 🧠 Core Info
     description = models.TextField(blank=True)
-    brand = models.CharField(max_length=100)
+    brand = models.CharField(max_length=100, null=True, blank=True)  # e.g., "Apple", "Samsung"
     category = models.ForeignKey(
         "Category",
         on_delete=models.CASCADE,
