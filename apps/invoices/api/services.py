@@ -49,11 +49,11 @@ def create_invoice_for_order(order: Order, created_by=None, invoice_type="invoic
             status=Invoice.Statuses.DRAFT,
         )
         # generate invoice_number after commit (id must exist)
-        # def _on_commit():
-        #     # mark issued (fills invoice_number & issued_at)
-        #     inv.mark_issued()
-        #     # optionally schedule PDF generation (Celery) — call task in pdf.generate_invoice_pdf_task
-        #     from apps.invoices.pdf import schedule_generate_invoice_pdf  # local import to avoid cycles
-        #     schedule_generate_invoice_pdf(inv.id)
-        # transaction.on_commit(_on_commit)
+        def _on_commit():
+            # mark issued (fills invoice_number & issued_at)
+            inv.mark_issued()
+            # optionally schedule PDF generation (Celery) — call task in pdf.generate_invoice_pdf_task
+            from apps.invoices.pdf import schedule_generate_invoice_pdf  # local import to avoid cycles
+            schedule_generate_invoice_pdf(inv.id)
+        transaction.on_commit(_on_commit)
     return inv
