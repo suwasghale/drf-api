@@ -62,3 +62,17 @@ def generate_invoice_pdf_bytes(invoice: Invoice) -> bytes:
         pdf_bytes = buffer.getvalue()
         buffer.close()
         return pdf_bytes
+
+# Celery scheduling helper (task lives in apps.invoices.tasks)
+def schedule_generate_invoice_pdf(invoice_id: int):
+    """Schedule PDF generation via Celery if available, else generate sync."""
+    try:
+        from apps.invoices.tasks import generate_invoice_pdf_task
+        # If Celery is configured, this will push task to broker (async)
+        generate_invoice_pdf_task.delay(invoice_id)
+    except Exception:
+        # fallback: synchronous generation
+        invoice = Invoice.objects.get(pk=invoice_id)
+        pdf_bytes = generate_invoice_pdf_bytes(invoice)
+        filename = f"{invoice.invoice_number}.pdf"
+        invoice.attach_pdf_bytes(filename, pdf_bytes)
