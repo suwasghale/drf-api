@@ -10,3 +10,10 @@ class InvoiceAdmin(admin.ModelAdmin):
     readonly_fields = ("invoice_number", "issued_at", "created_at", "updated_at")
 
     actions = ["regenerate_pdf", "mark_paid"]
+
+    def pdf_link(self, obj):
+        if obj.pdf:
+            return format_html('<a href="{}" target="_blank">PDF</a>', obj.pdf.url)
+        return "-"
+
+    
