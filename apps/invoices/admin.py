@@ -16,4 +16,13 @@ class InvoiceAdmin(admin.ModelAdmin):
             return format_html('<a href="{}" target="_blank">PDF</a>', obj.pdf.url)
         return "-"
 
+    def regenerate_pdf(self, request, queryset):
+        from apps.invoices.pdf import generate_invoice_pdf_bytes
+        for inv in queryset:
+            pdf_bytes = generate_invoice_pdf_bytes(inv)
+            inv.attach_pdf_bytes(f"{inv.invoice_number}.pdf", pdf_bytes)
+        self.message_user(request, "Selected invoices regenerated.")
+    regenerate_pdf.short_description = "Regenerate PDF for selected invoices"
+
+
     
