@@ -38,5 +38,8 @@ class InvoiceSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.pdf.url) if request else obj.pdf.url
         return None
 
-
-
+class InvoiceCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = ["order", "invoice_type", "due_date"]
+        # Creation will be routed to service; keep minimal
