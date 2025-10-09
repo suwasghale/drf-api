@@ -24,5 +24,8 @@ class InvoiceAdmin(admin.ModelAdmin):
         self.message_user(request, "Selected invoices regenerated.")
     regenerate_pdf.short_description = "Regenerate PDF for selected invoices"
 
-
+    def mark_paid(self, request, queryset):
+        updated = queryset.update(status=Invoice.Statuses.PAID)
+        self.message_user(request, f"Marked {updated} invoices as paid.")
+    mark_paid.short_description = "Mark selected invoices as paid"
     
