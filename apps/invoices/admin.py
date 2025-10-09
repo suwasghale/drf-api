@@ -15,6 +15,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         if obj.pdf:
             return format_html('<a href="{}" target="_blank">PDF</a>', obj.pdf.url)
         return "-"
+    # pdf_link.short_description = "PDF"
 
     def regenerate_pdf(self, request, queryset):
         from apps.invoices.pdf import generate_invoice_pdf_bytes
