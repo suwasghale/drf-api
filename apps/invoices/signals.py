@@ -6,6 +6,9 @@ from django.conf import settings
 from apps.payments.models import Payment
 from apps.invoices.api.services import create_invoice_for_order
 
+import logging
+
+
 @receiver(post_save, sender=Payment)
 def payment_post_save(sender, instance: Payment, created, **kwargs):
     """
@@ -26,3 +29,7 @@ def payment_post_save(sender, instance: Payment, created, **kwargs):
     except Exception:
         pass
              
+# You can add more signal handlers as needed.
+    # swallow all: signals must not break main flow; log instead
+    logger = logging.getLogger(__name__)
+    logger.exception("Error in payment_post_save signal for Payment %s", instance.pk)  
