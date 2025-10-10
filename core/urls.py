@@ -57,7 +57,11 @@ urlpatterns = [
     path('api/v1/', include('apps.payments.api.urls')),
 
     # shipments
-    path("api/", include("apps.shipments.api.urls")),
+    path("api/v1/", include("apps.shipments.api.urls")),
+
+    # invoices
+    path("api/v1/", include("apps.invoices.api.urls")),
+ 
 
     # JWT Auth endpoints
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
