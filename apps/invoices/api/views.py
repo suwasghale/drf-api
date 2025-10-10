@@ -28,3 +28,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         if self.action in ["create_from_order"]:
             return [IsAdminUser()]
         return [IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return self.queryset
+        # regular users only see invoices for their orders
+        return self.queryset.filter(order__user=user)
