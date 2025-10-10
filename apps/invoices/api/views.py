@@ -35,3 +35,18 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             return self.queryset
         # regular users only see invoices for their orders
         return self.queryset.filter(order__user=user)
+
+    @action(detail=False, methods=["post"], url_path="create-from-order", permission_classes=[IsAdminUser])
+    def create_from_order(self, request):
+        """
+        Admin endpoint to force-create invoice for an order:
+        payload: { "order_id": <id> }
+        """
+        order_id = request.data.get("order_id")
+        if not order_id:
+            return Response({"detail": "order_id required"}, status=status.HTTP_400_BAD_REQUEST)
+        from apps.orders.models import Order
+        order = get_object_or_404(Order, pk=order_id)
+        inv = create_invoice_for_order(order, created_by=request.user, force=True)
+        serializer = InvoiceSerializer(inv, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
