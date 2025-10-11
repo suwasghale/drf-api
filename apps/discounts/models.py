@@ -49,10 +49,12 @@ class Discount(models.Model):
 
 
     
-    def is_valid(self):
-        now = timezone.now()
-        return (
-            self.is_active and
-            (self.valid_from <= now <= self.valid_until if self.valid_until else True) and
-            (self.used_count < self.usage_limit)
-        )
+    def is_within_validity(self, now=None):
+        now = now or timezone.now()
+        if not self.is_active:
+            return False
+        if self.valid_from and now < self.valid_from:
+            return False
+        if self.valid_until and now > self.valid_until:
+            return False
+        return True
