@@ -26,3 +26,12 @@ class Discount(models.Model):
 
     def __str__(self):
         return f"{self.code} ({self.discount_type})"
+
+    
+    def is_valid(self):
+        now = timezone.now()
+        return (
+            self.is_active and
+            (self.valid_from <= now <= self.valid_until if self.valid_until else True) and
+            (self.used_count < self.usage_limit)
+        )
