@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from decimal import Decimal
+from django.db import transaction
 class Discount(models.Model):
     """
     A reusable coupon/discount model.
@@ -82,3 +83,14 @@ class Discount(models.Model):
         # Do not exceed order total
         return min(discount, order_total)
 
+    @transaction.atomic
+    def increment_usage(self, by=1):
+        """
+        Atomically increment used_count. Use select_for_update where you load the instance
+        if you plan to check remaining uses before incrementing.
+        """
+        # This method assumes object is not necessarily loaded with FOR UPDATE.
+        obj = Discount.objects.select_for_update().get(pk=self.pk)
+        obj.used_count = obj.used_count + by
+        obj.save(update_fields=["used_count"])
+        return obj.used_count
