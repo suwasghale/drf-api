@@ -58,3 +58,9 @@ class Discount(models.Model):
         if self.valid_until and now > self.valid_until:
             return False
         return True
+    
+    
+    def remaining_global_uses(self):
+        if self.usage_limit is None:
+            return None
+        return max(self.usage_limit - self.used_count, 0)
