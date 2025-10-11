@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-
+from decimal import Decimal
 class Discount(models.Model):
     """
     A reusable coupon/discount model.
@@ -64,3 +64,21 @@ class Discount(models.Model):
         if self.usage_limit is None:
             return None
         return max(self.usage_limit - self.used_count, 0)
+    
+    def calculate_discount_amount(self, order_total: Decimal) -> Decimal:
+        """
+        Calculate discount value for a given order_total (before discount).
+        Returns Decimal >= 0 and not greater than order_total.
+        """
+        order_total = Decimal(order_total)
+        if self.discount_type == self.DISCOUNT_PERCENTAGE:
+            percent = (self.amount or Decimal(0))
+            # cap percent at 100 to avoid accidental negative pricing
+            percent = min(percent, Decimal(100))
+            discount = (order_total * (percent / Decimal(100))).quantize(Decimal("0.01"))
+        else:
+            discount = Decimal(self.amount or 0).quantize(Decimal("0.01"))
+
+        # Do not exceed order total
+        return min(discount, order_total)
+
