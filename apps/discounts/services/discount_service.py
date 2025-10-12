@@ -51,3 +51,37 @@ class DiscountService:
         discount_amount = discount.calculate_discount_amount(order_total)
         final_total = (order_total - discount_amount).quantize(Decimal("0.01"))
         return discount_amount, final_total
+
+    @staticmethod
+    @transaction.atomic
+    def commit_redemption(discount: Discount, user, order, applied_amount: Decimal):
+        """
+        Record the redemption and increment global usage atomically.
+        Use select_for_update on discount to avoid race conditions.
+        """
+        # Lock discount row
+        discount = Discount.objects.select_for_update().get(pk=discount.pk)
+
+        # Double-check limits
+        if discount.usage_limit is not None and discount.used_count >= discount.usage_limit:
+            raise DiscountValidationError("This discount has reached its usage limit (concurrent).")
+
+        # If per-user limit exists, check it
+        if discount.per_user_limit is not None:
+            user_uses = DiscountRedemption.objects.filter(discount=discount, user=user).count()
+            if user_uses >= discount.per_user_limit:
+                raise DiscountValidationError("User per-coupon limit reached.")
+
+        # Create redemption record
+        redemption = DiscountRedemption.objects.create(
+            discount=discount,
+            user=user,
+            order=order,
+            amount=applied_amount,
+        )
+
+        # increment used_count
+        discount.used_count = discount.used_count + 1
+        discount.save(update_fields=["used_count"])
+
+        return redemption
