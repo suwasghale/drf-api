@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from django.conf import settings
 
 from apps.payments.models import Payment
-from apps.invoices.api.services import create_invoice_for_order
+from apps.invoices.services.services import create_invoice_for_order
 
 import logging
 

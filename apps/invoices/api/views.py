@@ -9,7 +9,7 @@ from django.http import FileResponse, HttpResponse
 
 from apps.invoices.models import Invoice
 from apps.invoices.api.serializers import InvoiceSerializer, InvoiceCreateSerializer
-from apps.invoices.api.services import create_invoice_for_order
+from apps.invoices.services.services import create_invoice_for_order
 
 class IsOwnerOrAdmin:
     """Simple class-based permission used inline (or implement as DRF Permission)."""
