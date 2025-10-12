@@ -37,3 +37,17 @@ class DiscountService:
 
         return True
 
+
+    @staticmethod
+    def apply_discount_to_order(discount: Discount, order, user=None):
+        """
+        Applies discount to given order – this function expects `order` to have:
+            - total_price or total (Decimal)
+            - a place to store discount amount (we return computed details, do NOT mutate order here)
+        Returns a tuple (discount_amount, final_total)
+        If you want to persist usage & redemptions, call `commit_redemption`.
+        """
+        order_total = Decimal(getattr(order, "total_price", getattr(order, "total", 0)))
+        discount_amount = discount.calculate_discount_amount(order_total)
+        final_total = (order_total - discount_amount).quantize(Decimal("0.01"))
+        return discount_amount, final_total
