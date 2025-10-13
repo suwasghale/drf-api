@@ -16,4 +16,7 @@ class DiscountSerializer(serializers.ModelSerializer):
             "remaining_uses", "created_at", "updated_at"
         ]
         read_only_fields = ["used_count", "created_at", "updated_at"]
+        
+    def get_remaining_uses(self, obj):
+        return obj.remaining_global_uses()
 
