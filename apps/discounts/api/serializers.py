@@ -30,3 +30,10 @@ class ApplyDiscountSerializer(serializers.Serializer):
     order_total = serializers.DecimalField(max_digits=12, decimal_places=2)
 
 
+
+class DiscountRedemptionSerializer(serializers.ModelSerializer):
+    discount = DiscountSerializer(read_only=True)
+    class Meta:
+        model = DiscountRedemption
+        fields = ["id", "discount", "user", "order", "amount", "created_at"]
+        read_only_fields = fields
