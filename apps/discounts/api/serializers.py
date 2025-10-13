@@ -16,7 +16,17 @@ class DiscountSerializer(serializers.ModelSerializer):
             "remaining_uses", "created_at", "updated_at"
         ]
         read_only_fields = ["used_count", "created_at", "updated_at"]
-        
+
     def get_remaining_uses(self, obj):
         return obj.remaining_global_uses()
+
+class ApplyDiscountSerializer(serializers.Serializer):
+    """
+    Input serializer for applying coupon to an order/cart.
+    """
+    code = serializers.CharField(max_length=50)
+    order_id = serializers.IntegerField(required=False)  # optional; service may accept a cart object instead
+    # Provide the pre-discount amount as a double-check (server will recalc)
+    order_total = serializers.DecimalField(max_digits=12, decimal_places=2)
+
 
