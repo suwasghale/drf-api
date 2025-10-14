@@ -69,3 +69,21 @@ class DiscountViewSet(viewsets.ModelViewSet):
         except DiscountValidationError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class DiscountRedemptionViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    List redemptions (admin) or user's own redemptions.
+    """
+    queryset = DiscountRedemption.objects.select_related("discount", "user", "order").all()
+    serializer_class = DiscountRedemptionSerializer
+
+    def get_permissions(self):
+        if self.action == "list":
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(user=user)
