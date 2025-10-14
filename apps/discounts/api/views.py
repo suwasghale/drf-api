@@ -47,22 +47,25 @@ class DiscountViewSet(viewsets.ModelViewSet):
         except DiscountValidationError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=["post"], url_path="commit", permission_classes=[IsAuthenticated])
+    def commit(self, request, pk=None):
+        """
+        Commits redemption (record + increment usage). Should be invoked when the order is successful.
+        Payload: { "order_id": <id>, "applied_amount": "<decimal>" }
+        """
+        discount = self.get_object()
+        order_id = request.data.get("order_id")
+        applied_amount = request.data.get("applied_amount")
+        if order_id is None or applied_amount is None:
+            return Response({"detail": "order_id and applied_amount required"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # lazy import to avoid circular dependency
+        from apps.orders.models import Order
+        order = get_object_or_404(Order, pk=order_id)
 
-class DiscountRedemptionViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    List redemptions (admin) or user's own redemptions.
-    """
-    queryset = DiscountRedemption.objects.select_related("discount", "user", "order").all()
-    serializer_class = DiscountRedemptionSerializer
+        try:
+            redemption = DiscountService.commit_redemption(discount, request.user, order, applied_amount)
+            return Response(DiscountRedemptionSerializer(redemption).data)
+        except DiscountValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_permissions(self):
-        if self.action == "list":
-            return [IsAdminUser()]
-        return [IsAuthenticated()]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_staff or user.is_superuser:
-            return self.queryset
-        return self.queryset.filter(user=user)
