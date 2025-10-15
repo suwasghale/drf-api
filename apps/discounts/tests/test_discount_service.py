@@ -16,4 +16,8 @@ class DiscountServiceTests(TestCase):
             is_active=True
         )
 
+    def test_calculate_percentage_discount(self):
+        discount_amount, final_total = DiscountService.apply_discount_to_order(self.discount, type("O", (), {"total_price": Decimal("100.00")}))
+        self.assertEqual(discount_amount, Decimal("10.00"))
+        self.assertEqual(final_total, Decimal("90.00"))
 
