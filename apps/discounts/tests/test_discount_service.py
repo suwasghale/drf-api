@@ -21,3 +21,6 @@ class DiscountServiceTests(TestCase):
         self.assertEqual(discount_amount, Decimal("10.00"))
         self.assertEqual(final_total, Decimal("90.00"))
 
+    def test_validate_invalid_code(self):
+        with self.assertRaises(DiscountValidationError):
+            DiscountService.get_discount_by_code("NOPE")
