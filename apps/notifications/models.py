@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+from django.utils import timezone
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
@@ -44,3 +44,7 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.user} - {self.title}"
 
+    def mark_as_read(self):
+        self.is_read = True
+        self.read_at = timezone.now()
+        self.save(update_fields=["is_read", "read_at"])
