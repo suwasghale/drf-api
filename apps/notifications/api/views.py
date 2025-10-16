@@ -34,3 +34,9 @@ class NotificationViewSet(viewsets.ModelViewSet):
         )
         return Response({"updated": count}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["post"], url_path="mark-read")
+    def mark_read(self, request, id=None):
+        """Mark a single notification as read."""
+        notification = self.get_object()
+        notification.mark_as_read()
+        return Response({"detail": "Marked as read."}, status=status.HTTP_200_OK)
