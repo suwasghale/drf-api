@@ -70,3 +70,14 @@ class NotificationAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+    # ------------------- DISPLAY HELPERS -------------------
+
+    def user_display(self, obj):
+        """Return username + email with link."""
+        return format_html(
+            f'<b>{obj.user.username}</b><br><small>{obj.user.email}</small>'
+        )
+    user_display.short_description = "User"
+
+
