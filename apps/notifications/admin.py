@@ -94,4 +94,18 @@ class NotificationAdmin(admin.ModelAdmin):
         )
     level_colored.short_description = "Level"
 
-   
+    # ------------------- CUSTOM ACTIONS -------------------
+
+    actions = ["mark_as_read", "mark_as_unread"]
+
+    def mark_as_read(self, request, queryset):
+        """Admin bulk action to mark notifications as read."""
+        count = queryset.update(is_read=True, read_at=timezone.now())
+        self.message_user(request, f"{count} notifications marked as read.")
+    mark_as_read.short_description = "✅ Mark selected as Read"
+
+    def mark_as_unread(self, request, queryset):
+        """Admin bulk action to mark notifications as unread."""
+        count = queryset.update(is_read=False, read_at=None)
+        self.message_user(request, f"{count} notifications marked as unread.")
+    mark_as_unread.short_description = "🔄 Mark selected as Unread"
