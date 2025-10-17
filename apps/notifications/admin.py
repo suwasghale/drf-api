@@ -109,3 +109,13 @@ class NotificationAdmin(admin.ModelAdmin):
         count = queryset.update(is_read=False, read_at=None)
         self.message_user(request, f"{count} notifications marked as unread.")
     mark_as_unread.short_description = "🔄 Mark selected as Unread"
+
+    # ------------------- OPTIMIZATION -------------------
+
+    def get_queryset(self, request):
+        """
+        Optimize queryset using select_related for user.
+        """
+        qs = super().get_queryset(request)
+        return qs.select_related("user")
+
