@@ -119,3 +119,17 @@ class NotificationAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.select_related("user")
 
+    # ------------------- PERMISSIONS -------------------
+
+    def has_add_permission(self, request):
+        """
+        Usually notifications are system-generated, 
+        so disable manual creation unless superuser.
+        """
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        Allow delete for admins only.
+        """
+        return request.user.is_staff
