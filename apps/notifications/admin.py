@@ -80,4 +80,18 @@ class NotificationAdmin(admin.ModelAdmin):
         )
     user_display.short_description = "User"
 
+    def level_colored(self, obj):
+        """Color-coded severity badge."""
+        color_map = {
+            "info": "#3498db",
+            "success": "#2ecc71",
+            "warning": "#f1c40f",
+            "error": "#e74c3c",
+        }
+        color = color_map.get(obj.level, "#7f8c8d")
+        return format_html(
+            f'<span style="background-color:{color}; color:white; padding:2px 8px; border-radius:4px; font-size:12px;">{obj.level.title()}</span>'
+        )
+    level_colored.short_description = "Level"
 
+   
