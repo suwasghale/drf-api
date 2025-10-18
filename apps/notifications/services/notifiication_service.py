@@ -14,3 +14,12 @@ def create_notification(user, title, message, notification_type="general", level
     )
 
 
+def send_order_placed_notification(order):
+    create_notification(
+        user=order.user,
+        title="Order Placed Successfully",
+        message=f"Your order #{order.id} has been placed successfully and is now being processed.",
+        notification_type="order",
+        level="success",
+    )
+
