@@ -23,3 +23,13 @@ def send_order_placed_notification(order):
         level="success",
     )
 
+
+def send_payment_success_notification(payment):
+    create_notification(
+        user=payment.user,
+        title="Payment Successful",
+        message=f"Your payment for order #{payment.order.id} was successful.",
+        notification_type="payment",
+        level="success",
+    )
+
