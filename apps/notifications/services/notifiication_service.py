@@ -33,3 +33,14 @@ def send_payment_success_notification(payment):
         level="success",
     )
 
+
+def send_shipment_delivered_notification(shipment):
+    create_notification(
+        user=shipment.user,
+        title="Shipment Delivered",
+        message=f"Your shipment for order #{shipment.order.id} has been delivered.",
+        notification_type="shipment",
+        level="success",
+    )
+
+
