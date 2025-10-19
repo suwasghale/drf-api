@@ -22,3 +22,7 @@ def payment_success_handler(sender, instance, **kwargs):
         send_payment_success_notification(instance)
 
 
+@receiver(post_save, sender=Shipment)
+def shipment_delivered_handler(sender, instance, **kwargs):
+    if instance.status == "delivered":
+        send_shipment_delivered_notification(instance)
