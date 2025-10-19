@@ -8,3 +8,10 @@ from apps.notifications.services.notification_service import (
     send_payment_success_notification,
     send_shipment_delivered_notification,
 )
+
+
+@receiver(post_save, sender=Order)
+def order_created_handler(sender, instance, created, **kwargs):
+    if created:
+        send_order_placed_notification(instance)
+
