@@ -15,3 +15,10 @@ def order_created_handler(sender, instance, created, **kwargs):
     if created:
         send_order_placed_notification(instance)
 
+
+@receiver(post_save, sender=Payment)
+def payment_success_handler(sender, instance, **kwargs):
+    if instance.status == "paid":
+        send_payment_success_notification(instance)
+
+
