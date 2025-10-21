@@ -64,8 +64,8 @@ INSTALLED_APPS = [
     "apps.payments",
     "apps.shipments",
     "apps.invoices",
-    "apps.notifications"
-    # to be added:analytics, supports
+    # "apps.notifications"
+    # to be added: supports
 
 
     # Third party apps
