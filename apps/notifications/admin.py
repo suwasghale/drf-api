@@ -133,3 +133,7 @@ class NotificationAdmin(admin.ModelAdmin):
         Allow delete for admins only.
         """
         return request.user.is_staff
+
+admin.site.index_title = "Ecommerce Admin Dashboard"
+admin.site.site_header = "Ecommerce Platform"
+admin.site.site_title = "Ecommerce Admin"
