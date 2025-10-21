@@ -44,3 +44,29 @@ class ProductPerformance(models.Model):
         return f"Performance: {self.product.name}"
 
 
+class UserActivity(models.Model):
+    """
+    Logs key user activities for analytics & engagement insights.
+    """
+    ACTIVITY_CHOICES = [
+        ("login", "Login"),
+        ("logout", "Logout"),
+        ("order_created", "Order Created"),
+        ("payment_completed", "Payment Completed"),
+        ("review_submitted", "Review Submitted"),
+        ("wishlist_added", "Wishlist Added"),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="activities")
+    activity_type = models.CharField(max_length=50, choices=ACTIVITY_CHOICES)
+    reference_id = models.CharField(max_length=255, blank=True, null=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "User Activity"
+        verbose_name_plural = "User Activities"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.activity_type}"
