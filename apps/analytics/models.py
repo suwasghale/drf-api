@@ -24,3 +24,23 @@ class SalesReport(models.Model):
     def __str__(self):
         return f"Sales Report - {self.date}"
 
+
+class ProductPerformance(models.Model):
+    """
+    Tracks how each product performs in terms of sales and ratings.
+    """
+    product = models.OneToOneField("product.Product", on_delete=models.CASCADE, related_name="performance")
+    total_sales = models.PositiveIntegerField(default=0)
+    total_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
+    total_reviews = models.PositiveIntegerField(default=0)
+    last_sold_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Product Performance"
+        verbose_name_plural = "Product Performances"
+
+    def __str__(self):
+        return f"Performance: {self.product.name}"
+
+
