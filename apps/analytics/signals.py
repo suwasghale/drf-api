@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-
+from django.db import models
 from apps.orders.models import Order
 from apps.payments.models import Payment
 from apps.product.models import Review
@@ -35,3 +35,9 @@ def log_payment_activity(sender, instance, created, **kwargs):
         )
 
 
+@receiver(post_save, sender=Review)
+def update_product_performance(sender, instance, created, **kwargs):
+    perf, _ = ProductPerformance.objects.get_or_create(product=instance.product)
+    perf.total_reviews = instance.product.reviews.count()
+    perf.average_rating = instance.product.reviews.aggregate(avg=models.Avg("rating"))["avg"] or 0
+    perf.save(update_fields=["total_reviews", "average_rating"])
