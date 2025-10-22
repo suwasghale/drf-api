@@ -22,3 +22,16 @@ def update_sales_report(sender, instance, created, **kwargs):
         report.total_revenue / report.total_orders if report.total_orders else 0
     )
     report.save(update_fields=["total_orders", "total_revenue", "average_order_value"])
+
+
+@receiver(post_save, sender=Payment)
+def log_payment_activity(sender, instance, created, **kwargs):
+    if created and instance.status == "completed":
+        UserActivity.objects.create(
+            user=instance.user,
+            activity_type="payment_completed",
+            reference_id=str(instance.id),
+            metadata={"amount": float(instance.amount)},
+        )
+
+
