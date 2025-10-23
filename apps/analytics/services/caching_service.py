@@ -30,3 +30,22 @@ def get_cached_sales_summary():
     return data
 
 
+def get_cached_performance_metrics():
+    """
+    Fetch cached daily performance metrics.
+    """
+    key = "analytics:daily_performance"
+    data = cache.get(key)
+
+    if not data:
+        latest_metrics = PerformanceMetric.objects.order_by("-date").first()
+        if not latest_metrics:
+            return None
+
+        data = {
+            "date": latest_metrics.date.isoformat(),
+            "active_users": latest_metrics.active_users,
+            "conversion_rate": latest_metrics.conversion_rate,
+        }
+        cache.set(key, data, CACHE_TIMEOUT)
+    return data
