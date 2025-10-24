@@ -43,3 +43,8 @@ class SalesReportSerializer(serializers.ModelSerializer):
         """
         return obj.date.strftime("%B %Y")
 
+    def get_formatted_revenue(self, obj):
+        """
+        Format total revenue with currency and thousand separator.
+        """
+        return f"Rs. {obj.total_revenue:,.2f}"
