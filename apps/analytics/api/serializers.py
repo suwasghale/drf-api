@@ -48,3 +48,33 @@ class SalesReportSerializer(serializers.ModelSerializer):
         Format total revenue with currency and thousand separator.
         """
         return f"Rs. {obj.total_revenue:,.2f}"
+
+    def get_performance_summary(self, obj):
+        """
+        Optional computed field for dashboard insights.
+        Could include growth % or trend direction.
+        """
+        previous_report = (
+            SalesReport.objects.filter(date__lt=obj.date)
+            .order_by("-date")
+            .first()
+        )
+
+        if not previous_report or previous_report.total_revenue == 0:
+            growth_rate = None
+        else:
+            growth_rate = (
+                ((obj.total_revenue - previous_report.total_revenue)
+                 / previous_report.total_revenue)
+                * 100
+            )
+
+        return {
+            "growth_rate": round(growth_rate, 2) if growth_rate is not None else None,
+            "status": (
+                "up" if growth_rate and growth_rate > 0
+                else "down" if growth_rate and growth_rate < 0
+                else "stable"
+            )
+        }
+
