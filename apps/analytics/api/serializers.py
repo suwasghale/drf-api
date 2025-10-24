@@ -32,3 +32,14 @@ class SalesReportSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+
+    # ----------------------------------------------------------------
+    # CUSTOM FIELD METHODS
+    # ----------------------------------------------------------------
+
+    def get_formatted_date(self, obj):
+        """
+        Return a human-readable date label (e.g. "October 2025").
+        """
+        return obj.date.strftime("%B %Y")
+
