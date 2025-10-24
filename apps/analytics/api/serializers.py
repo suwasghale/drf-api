@@ -78,3 +78,16 @@ class SalesReportSerializer(serializers.ModelSerializer):
             )
         }
 
+    # ----------------------------------------------------------------
+    # OPTIONAL CUSTOM VALIDATION (for future admin/manual creation)
+    # ----------------------------------------------------------------
+
+    def validate_total_revenue(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Revenue cannot be negative.")
+        return value
+
+    def validate_average_order_value(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Average order value cannot be negative.")
+        return value
