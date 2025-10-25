@@ -93,9 +93,6 @@ class SalesReportSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Average order value cannot be negative.")
         return value
 
-
-class SalesReportSerializer(serializers.ModelSerializer):
-    ...
     time_since_update = serializers.SerializerMethodField()
 
     def get_time_since_update(self, obj):
