@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils.timesince import timesince
 from apps.analytics.models import SalesReport
 
 
@@ -91,3 +92,11 @@ class SalesReportSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError("Average order value cannot be negative.")
         return value
+
+
+class SalesReportSerializer(serializers.ModelSerializer):
+    ...
+    time_since_update = serializers.SerializerMethodField()
+
+    def get_time_since_update(self, obj):
+        return timesince(obj.updated_at) + " ago"
