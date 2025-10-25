@@ -106,3 +106,41 @@ class SalesReportAdmin(admin.ModelAdmin):
     last_updated.short_description = "Last Updated"
 
 
+    # -------------------------------------------------------------------
+    # ADMIN ACTIONS
+    # -------------------------------------------------------------------
+
+    actions = ["regenerate_latest_report", "export_to_csv"]
+
+    def regenerate_latest_report(self, request, queryset):
+        """
+        Regenerate current month’s sales report (manual trigger).
+        """
+        generate_monthly_sales_report()
+        self.message_user(request, "✅ Monthly sales report regenerated successfully.")
+    regenerate_latest_report.short_description = "🔁 Recalculate Current Month Report"
+
+    def export_to_csv(self, request, queryset):
+        """
+        Export selected reports as CSV (for finance team).
+        """
+        import csv
+        from django.http import HttpResponse
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="sales_reports.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(["Date", "Total Orders", "Total Revenue", "Average Order Value"])
+
+        for report in queryset:
+            writer.writerow([
+                report.date.strftime("%Y-%m-%d"),
+                report.total_orders,
+                f"{report.total_revenue:.2f}",
+                f"{report.average_order_value:.2f}",
+            ])
+
+        return response
+    export_to_csv.short_description = "⬇️ Export Selected Reports to CSV"
+
