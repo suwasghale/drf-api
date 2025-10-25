@@ -144,3 +144,16 @@ class SalesReportAdmin(admin.ModelAdmin):
         return response
     export_to_csv.short_description = "⬇️ Export Selected Reports to CSV"
 
+    # -------------------------------------------------------------------
+    # PERFORMANCE OPTIMIZATION
+    # -------------------------------------------------------------------
+
+    def get_queryset(self, request):
+        """
+        Optimize admin queryset.
+        Prefetch and order by date for fast rendering.
+        """
+        qs = super().get_queryset(request)
+        return qs.defer("created_at").order_by("-date")
+
+ 
