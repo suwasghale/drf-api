@@ -60,3 +60,23 @@ class SalesReportAdmin(admin.ModelAdmin):
     )
 
     date_hierarchy = "date"
+
+
+    # -------------------------------------------------------------------
+    # CUSTOM DISPLAY METHODS
+    # -------------------------------------------------------------------
+
+    def date_display(self, obj):
+        """Readable month name (e.g. October 2025)."""
+        return obj.date.strftime("%B %Y")
+    date_display.short_description = "Report Month"
+
+    def colored_revenue(self, obj):
+        """Show revenue with color intensity based on value."""
+        color = "#2ecc71" if obj.total_revenue > 0 else "#e74c3c"
+        return format_html(
+            f"<b style='color:{color};'>Rs. {obj.total_revenue:,.2f}</b>"
+        )
+    colored_revenue.short_description = "Total Revenue"
+
+
