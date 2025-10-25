@@ -79,4 +79,30 @@ class SalesReportAdmin(admin.ModelAdmin):
         )
     colored_revenue.short_description = "Total Revenue"
 
+    def growth_indicator(self, obj):
+        """
+        Compare this month with previous month.
+        Uses simple growth rate logic (can expand via analytics service).
+        """
+        prev = (
+            SalesReport.objects.filter(date__lt=obj.date)
+            .order_by("-date")
+            .first()
+        )
+        if not prev or prev.total_revenue == 0:
+            return format_html("<span style='color:gray;'>–</span>")
+
+        growth = ((obj.total_revenue - prev.total_revenue) / prev.total_revenue) * 100
+        color = "#2ecc71" if growth > 0 else "#e74c3c" if growth < 0 else "#7f8c8d"
+        icon = "▲" if growth > 0 else "▼" if growth < 0 else "■"
+        return format_html(
+            f"<span style='color:{color}; font-weight:bold;'>{icon} {growth:.2f}%</span>"
+        )
+    growth_indicator.short_description = "Growth vs Previous"
+
+    def last_updated(self, obj):
+        """Show how long ago this report was updated."""
+        return f"{timesince(obj.updated_at)} ago"
+    last_updated.short_description = "Last Updated"
+
 
