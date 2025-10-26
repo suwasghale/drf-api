@@ -83,3 +83,18 @@ class SalesReportViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+    @action(detail=False, methods=["get"], url_path="trends")
+    def trends(self, request):
+        """
+        Returns sales trends for the last 6 months.
+        Useful for line charts or dashboards.
+        """
+        six_months_ago = timezone.now().date() - timedelta(days=180)
+        reports = (
+            SalesReport.objects.filter(date__gte=six_months_ago)
+            .order_by("date")
+            .values("date", "total_revenue", "total_orders", "average_order_value")
+        )
+
+        return Response(reports)
+
