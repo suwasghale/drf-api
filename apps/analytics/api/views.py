@@ -113,3 +113,30 @@ class SalesReportViewSet(viewsets.ReadOnlyModelViewSet):
             {"detail": "✅ Monthly sales report regenerated successfully."},
             status=status.HTTP_200_OK,
         )
+
+
+    @action(detail=False, methods=["get"], url_path="live-dashboard")
+    def live_dashboard(self, request):
+        """
+        Real-time snapshot analytics (last 7 days).
+        Example: /api/analytics/sales-reports/live-dashboard/
+        """
+        today = timezone.now()
+        week_ago = today - timedelta(days=7)
+
+        orders = Order.objects.filter(created_at__gte=week_ago, status="completed")
+        data = orders.aggregate(
+            total_orders=Count("id"),
+            total_revenue=Sum("total_price"),
+            avg_order_value=Avg("total_price"),
+        )
+
+        return Response(
+            {
+                "from": week_ago.date(),
+                "to": today.date(),
+                "total_orders": data["total_orders"] or 0,
+                "total_revenue": round(data["total_revenue"] or 0, 2),
+                "average_order_value": round(data["avg_order_value"] or 0, 2),
+            }
+        )
