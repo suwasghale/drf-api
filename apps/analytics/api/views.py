@@ -48,4 +48,38 @@ class SalesReportViewSet(viewsets.ReadOnlyModelViewSet):
 
         return queryset
 
+    # -----------------------------------------------------------------------
+    # CUSTOM ENDPOINTS
+    # -----------------------------------------------------------------------
+
+    @action(detail=False, methods=["get"], url_path="summary")
+    def summary(self, request):
+        """
+        Provides an overview of current month’s key metrics.
+        Example: /api/analytics/sales-reports/summary/
+        """
+        today = timezone.now().date()
+        start_date = today.replace(day=1)
+
+        report = (
+            SalesReport.objects.filter(date=start_date)
+            .values("total_orders", "total_revenue", "average_order_value")
+            .first()
+        )
+
+        if not report:
+            return Response(
+                {"detail": "No report found for this month."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {
+                "month": start_date.strftime("%B %Y"),
+                "total_orders": report["total_orders"],
+                "total_revenue": f"{report['total_revenue']:.2f}",
+                "average_order_value": f"{report['average_order_value']:.2f}",
+            }
+        )
+
 
