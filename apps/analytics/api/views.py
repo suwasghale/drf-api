@@ -29,4 +29,23 @@ class SalesReportViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ["date", "total_revenue"]
     ordering = ["-date"]
 
+    def get_queryset(self):
+        """
+        Optimized queryset with caching for performance.
+        Cache key expires every 10 minutes.
+        """
+        cache_key = "analytics:sales_report_queryset"
+        queryset = cache.get(cache_key)
+
+        if not queryset:
+            queryset = (
+                SalesReport.objects
+                .all()
+                .defer("created_at")
+                .order_by("-date")
+            )
+            cache.set(cache_key, queryset, 600)  # Cache for 10 minutes
+
+        return queryset
+
 
