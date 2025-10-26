@@ -98,3 +98,18 @@ class SalesReportViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(reports)
 
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="regenerate",
+        permission_classes=[IsAdminUser],
+    )
+    def regenerate_reports(self, request):
+        """
+        Admin-only endpoint to manually regenerate the monthly report.
+        """
+        generate_monthly_sales_report()
+        return Response(
+            {"detail": "✅ Monthly sales report regenerated successfully."},
+            status=status.HTTP_200_OK,
+        )
