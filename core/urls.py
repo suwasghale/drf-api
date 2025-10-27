@@ -68,6 +68,9 @@ urlpatterns = [
     # notifications
     path("api/v1/", include("apps.notifications.api.urls")),
 
+    # analytics
+    path("api/v1/", include("apps.analytics.api.urls")),
+
     # JWT Auth endpoints
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
