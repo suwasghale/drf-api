@@ -65,4 +65,23 @@ class Ticket(models.Model):
     def __str__(self):
         return f"{self.reference or str(self.id)} — {self.title}"
 
+    def save(self, *args, **kwargs):
+        # generate a readable reference once on create
+        if not self.reference:
+            # e.g. SUP-2025-00001 (simple approach)
+            prefix = "SUP"
+            date_part = timezone.now().strftime("%Y%m%d")
+            # fallback: use part of uuid to avoid race; for sequential you'd use a counter table
+            self.reference = f"{prefix}-{date_part}-{str(self.id)[:8].upper()}"
+        if not self.last_activity_at:
+            self.last_activity_at = timezone.now()
+        super().save(*args, **kwargs)
 
+    @property
+    def is_open(self):
+        return self.status in {self.Status.OPEN, self.Status.PENDING, self.Status.IN_PROGRESS, self.Status.ESCALATED}
+
+    def mark_activity(self):
+        """Touch last_activity_at to now."""
+        self.last_activity_at = timezone.now()
+        self.save(update_fields=["last_activity_at"])
