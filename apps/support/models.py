@@ -114,3 +114,34 @@ class TicketMessage(models.Model):
         super().save(*args, **kwargs)
         # Update ticket last_activity_at
         Ticket.objects.filter(pk=self.ticket_id).update(last_activity_at=self.created_at)
+
+
+
+class MessageAttachment(models.Model):
+    """
+    Stores attachment files for ticket messages.
+    Keep attachments small and validate file types in serializer or storage layer.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    message = models.ForeignKey(TicketMessage, on_delete=models.CASCADE, related_name="attachments")
+    file = models.FileField(upload_to="support/attachments/%Y/%m/%d/")
+    file_name = models.CharField(max_length=255, blank=True)
+    content_type = models.CharField(max_length=255, blank=True)
+    size = models.PositiveIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["message", "created_at"])]
+        verbose_name = "Message Attachment"
+        verbose_name_plural = "Message Attachments"
+
+    def save(self, *args, **kwargs):
+        if not self.file_name and self.file:
+            self.file_name = self.file.name
+        if self.file and not self.size:
+            try:
+                self.size = self.file.size
+            except Exception:
+                self.size = None
+        super().save(*args, **kwargs)
+
