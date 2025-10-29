@@ -19,3 +19,19 @@ class TicketMessageSerializer(serializers.ModelSerializer):
         model = TicketMessage
         fields = ["id", "ticket", "user", "body", "is_internal", "is_from_customer", "created_at", "attachments"]
         read_only_fields = ["id", "ticket", "user", "created_at", "is_from_customer"]
+
+
+class TicketCreateSerializer(serializers.ModelSerializer):
+    """
+    Input serializer for creating tickets. Creator is assigned from request.user.
+    """
+    class Meta:
+        model = Ticket
+        fields = ["title", "description", "order", "priority", "tags", "is_public"]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        ticket = Ticket.objects.create(creator=user, **validated_data)
+        return ticket
+
