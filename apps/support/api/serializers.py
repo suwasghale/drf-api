@@ -35,3 +35,16 @@ class TicketCreateSerializer(serializers.ModelSerializer):
         ticket = Ticket.objects.create(creator=user, **validated_data)
         return ticket
 
+class TicketSerializer(serializers.ModelSerializer):
+    creator = serializers.CharField(source="creator.username", read_only=True)
+    assigned_to = serializers.CharField(source="assigned_to.username", read_only=True)
+    messages = TicketMessageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = [
+            "id", "reference", "title", "description", "creator", "assigned_to",
+            "order", "status", "priority", "is_public", "tags",
+            "created_at", "updated_at", "last_activity_at", "sla_due_at", "messages"
+        ]
+        read_only_fields = ["id", "reference", "creator", "created_at", "updated_at", "last_activity_at"]
