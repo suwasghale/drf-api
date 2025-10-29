@@ -9,3 +9,13 @@ class MessageAttachmentSerializer(serializers.ModelSerializer):
         model = MessageAttachment
         fields = ["id", "file", "file_name", "content_type", "size", "created_at"]
         read_only_fields = ["id", "file_name", "content_type", "size", "created_at"]
+
+
+class TicketMessageSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+    attachments = MessageAttachmentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = TicketMessage
+        fields = ["id", "ticket", "user", "body", "is_internal", "is_from_customer", "created_at", "attachments"]
+        read_only_fields = ["id", "ticket", "user", "created_at", "is_from_customer"]
