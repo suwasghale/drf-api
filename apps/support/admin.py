@@ -1,4 +1,3 @@
-# apps/support/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from apps.support.models import Ticket, TicketMessage, MessageAttachment
@@ -17,4 +16,15 @@ class TicketAdmin(admin.ModelAdmin):
         ("Status & Priority", {"fields": ("status", "priority", "is_public", "sla_due_at")}),
         ("Timestamps", {"fields": ("created_at", "updated_at", "last_activity_at")}),
     )
+
+@admin.register(TicketMessage)
+class TicketMessageAdmin(admin.ModelAdmin):
+    list_display = ("id", "ticket_reference", "user", "is_internal", "created_at")
+    search_fields = ("ticket__reference", "user__username", "body")
+    readonly_fields = ("created_at",)
+    raw_id_fields = ("ticket", "user")
+
+    def ticket_reference(self, obj):
+        return obj.ticket.reference
+    ticket_reference.short_description = "Ticket"
 
