@@ -28,3 +28,8 @@ class TicketMessageAdmin(admin.ModelAdmin):
         return obj.ticket.reference
     ticket_reference.short_description = "Ticket"
 
+@admin.register(MessageAttachment)
+class MessageAttachmentAdmin(admin.ModelAdmin):
+    list_display = ("id", "message", "file_name", "size", "created_at")
+    raw_id_fields = ("message",)
+    readonly_fields = ("file_name", "content_type", "size", "created_at")
