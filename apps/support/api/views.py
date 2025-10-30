@@ -54,3 +54,38 @@ class TicketViewSet(viewsets.ModelViewSet):
         if not request.user.is_staff and not request.user.is_superuser:
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
         return super().partial_update(request, *args, **kwargs)
+
+    @action(detail=True, methods=["post"], url_path="message")
+    def add_message(self, request, reference=None):
+        """
+        Add a message to a ticket. Accepts 'body' and optional attachments (multipart).
+        """
+        ticket = self.get_object()
+        serializer = TicketMessageSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            message = TicketMessage.objects.create(
+                ticket=ticket,
+                user=request.user,
+                body=serializer.validated_data["body"],
+                is_internal=serializer.validated_data.get("is_internal", False),
+                is_from_customer=(not request.user.is_staff)
+            )
+
+            # handle file attachments if any (expecting files under 'attachments')
+            files = request.FILES.getlist("attachments")
+            attachments = []
+            for f in files:
+                att = MessageAttachment.objects.create(
+                    message=message,
+                    file=f,
+                    file_name=getattr(f, "name", "")
+                )
+                attachments.append(att)
+
+            # touch ticket activity timestamp
+            ticket.mark_activity()
+
+        return Response(TicketMessageSerializer(message).data, status=status.HTTP_201_CREATED)
+
