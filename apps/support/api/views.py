@@ -40,3 +40,17 @@ class TicketViewSet(viewsets.ModelViewSet):
         if user.is_staff or user.is_superuser:
             return self.queryset
         return self.queryset.filter(creator=user)
+
+    def perform_create(self, serializer):
+        # creator is taken from request in serializer.create
+        ticket = serializer.save()
+        # optionally trigger hooks: notifications, analytics
+        # notify_ticket_created(ticket)
+        return ticket
+
+    def partial_update(self, request, *args, **kwargs):
+        # allow staff to update status / assignment
+        instance = self.get_object()
+        if not request.user.is_staff and not request.user.is_superuser:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        return super().partial_update(request, *args, **kwargs)
