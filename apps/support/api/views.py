@@ -89,3 +89,16 @@ class TicketViewSet(viewsets.ModelViewSet):
 
         return Response(TicketMessageSerializer(message).data, status=status.HTTP_201_CREATED)
 
+class TicketMessageViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Read-only endpoint for messages (staff or owner).
+    """
+    queryset = TicketMessage.objects.select_related("ticket", "user").prefetch_related("attachments")
+    serializer_class = TicketMessageSerializer
+    permission_classes = [permissions.IsAuthenticated, IsTicketOwnerOrStaff]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(ticket__creator=user)
