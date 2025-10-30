@@ -16,3 +16,27 @@ class IsTicketOwnerOrStaff(permissions.BasePermission):
             return True
         return obj.creator == request.user
 
+
+class TicketViewSet(viewsets.ModelViewSet):
+    """
+    CRUD for tickets.
+    - list: users see own tickets; staff see all
+    - retrieve: ticket detail plus messages
+    - create: create ticket as authenticated user
+    - partial_update: staff only (assign, status, priority)
+    """
+    queryset = Ticket.objects.all().select_related("creator", "assigned_to").prefetch_related("messages", "messages__attachments")
+    lookup_field = "reference"  # use reference for nicer URLs
+    filterset_fields = ["status", "priority", "creator__username", "assigned_to__username"]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return TicketCreateSerializer
+        return TicketSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(creator=user)
