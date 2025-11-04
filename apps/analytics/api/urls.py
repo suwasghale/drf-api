@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from apps.analytics.views import SalesReportViewSet
+from apps.analytics.api.views import SalesReportViewSet
 
 # ---------------------------------------------------------------------
 # ROUTER SETUP

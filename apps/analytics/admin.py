@@ -3,8 +3,7 @@ from django.utils.html import format_html
 from django.utils.timesince import timesince
 from django.utils import timezone
 from apps.analytics.models import SalesReport
-from apps.analytics.services.reports_service import generate_monthly_sales_report
-
+from apps.analytics.services.report_service import generate_monthly_sales_report
 
 @admin.register(SalesReport)
 class SalesReportAdmin(admin.ModelAdmin):

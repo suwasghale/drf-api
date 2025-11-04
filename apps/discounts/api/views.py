@@ -4,7 +4,9 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from apps.discounts.models import Discount, DiscountRedemption
+from apps.discounts.models import Discount
+from apps.discounts.models_user_usage import DiscountRedemption
+from decimal import Decimal
 from apps.discounts.api.serializers import (
     DiscountSerializer,
     ApplyDiscountSerializer,
