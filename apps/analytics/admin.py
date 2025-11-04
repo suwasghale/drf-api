@@ -37,8 +37,7 @@ class SalesReportAdmin(admin.ModelAdmin):
         "total_orders",
         "total_revenue",
         "average_order_value",
-        "created_at",
-        "updated_at",
+
     )
 
     fieldsets = (
