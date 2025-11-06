@@ -206,17 +206,9 @@ celery -A core worker -l info
 
 📜 License
 
-MIT License © 2025 — Developed by Ram Bahadur Ghale
+MIT License © 2025 — Developed by Suwas Ghale
 💬 Contact
 
 If you’d like to collaborate or suggest improvements:
-📧 ramghale@example.com
+📧 suwasghale2281@gmail.com
 
-🌐 GitHub Profile
-
----
-
-✅ **How to add it properly:**
-
-1. Copy all the above content.  
-2. In your project root, create or edit:
