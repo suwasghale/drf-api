@@ -92,8 +92,11 @@ This architecture follows a **modular monolith** pattern — each app can scale 
 
 ### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/<yourusername>/<your-repo-name>.git
-cd <your-repo-name>
+git clone https://github.com/suwasghale/drf-api.git### 2️⃣ Navigate to the Project Directory
+```bash
+cd drf-api
+
+```bash
 
 2️⃣ Create & Activate Virtual Environment
 
