@@ -63,25 +63,29 @@ A **scalable, secure, and production-ready e-commerce backend** built using **Dj
 
 ## 🧱 Project Architecture
 
+## 🧱 Project Architecture
+
+```text
 apps/
 │
-├── users/ # Authentication, Profiles
-├── addresses/ # User Addresses
-├── cart/ # Shopping Cart
-├── orders/ # Orders & Items
-├── payments/ # Payment Handling
-├── shipments/ # Shipments
-├── invoices/ # Billing & Invoices
-├── notifications/ # Alerts & Messages
-├── analytics/ # Reports & Insights
-├── discounts/ # Coupons & Rules
-└── support/ # Customer Support
+├── users/              # Authentication, Profiles
+├── addresses/          # User Addresses
+├── cart/               # Shopping Cart
+├── orders/             # Orders & Items
+├── payments/           # Payment Handling
+├── shipments/          # Shipments
+├── invoices/           # Billing & Invoices
+├── notifications/      # Alerts & Messages
+├── analytics/          # Reports & Insights
+├── discounts/          # Coupons & Rules
+└── support/            # Customer Support
 
 core/
-├── settings/ # Environment-specific configs
-├── middleware/ # Custom middlewares
-├── utils/ # Helpers & common utilities
+├── settings/           # Environment-specific configs
+├── middleware/         # Custom middlewares
+├── utils/              # Helpers & common utilities
 └── urls.py
+
 
 
 This architecture follows a **modular monolith** pattern — each app can scale or be extracted into microservices later.
