@@ -59,10 +59,6 @@ A **scalable, secure, and production-ready e-commerce backend** built using **Dj
   - Ticket-based user support system
   - Prioritization and response tracking
 
----
-
-## 🧱 Project Architecture
-
 ## 🧱 Project Architecture
 
 ```text
