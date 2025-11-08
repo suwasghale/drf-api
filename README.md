@@ -58,6 +58,11 @@ A **scalable, secure, and production-ready e-commerce backend** built using **Dj
 - 🛠️ **Support**
   - Ticket-based user support system
   - Prioritization and response tracking
+  
+- ❤️ **Wishlist**
+  - Save favorite products for later purchase
+  - Easily move items from wishlist to cart
+  - User-specific persistent storage
 
 ## 🧱 Project Architecture
 
@@ -75,6 +80,8 @@ apps/
 ├── analytics/          # Reports & Insights
 ├── discounts/          # Coupons & Rules
 └── support/            # Customer Support
+└── wishlist/           # Wishlist Management
+
 
 core/
 ├── settings/           # Environment-specific configs
