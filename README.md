@@ -88,6 +88,15 @@ core/
 ├── middleware/         # Custom middlewares
 ├── utils/              # Helpers & common utilities
 └── urls.py
+└── asgi.py
+└── wsgi.py
+
+media/
+├── uploads/           # uploads
+
+.env
+.gitignore
+manage.py
 
 
 
