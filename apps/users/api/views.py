@@ -62,6 +62,7 @@ class UserViewSet(viewsets.ModelViewSet):
     - Social login hooks
     - Audit logs
     - Role-based access
+    - Many more features to be added
     """
     queryset = User.objects.all().order_by("-date_joined")
     serializer_class = UserSerializer
@@ -92,6 +93,10 @@ class UserViewSet(viewsets.ModelViewSet):
             "verify_email": "email_verify",
             "resend_verification": "email_verify",
             "forgot_password": "forgot_password",
+            "reset_password": "forgot_password",
+            "change_password": "change_password",
+            "logout": "logout",
+            "logout_all": "logout",
         }
         for action_name, scope in scopes.items():
             if self.action == action_name:
