@@ -79,6 +79,8 @@ INSTALLED_APPS = [
     'corsheaders',
     "debug_toolbar",
     "phonenumber_field",
+    "cloudinary_storage",
+    "cloudinary",
 
 ]
 
