@@ -96,7 +96,7 @@ class UserViewSet(viewsets.ModelViewSet):
             "reset_password": "forgot_password",
             "change_password": "change_password",
             "logout": "logout",
-            "logout_all": "logout",
+            "logout_all": "logout_all",
         }
         for action_name, scope in scopes.items():
             if self.action == action_name:
