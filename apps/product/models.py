@@ -11,7 +11,7 @@ class Category(models.Model):
     Supports nested categories using self-referencing 'parent'.
     """
     name = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=255, unique=True, null=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)    
     parent = models.ForeignKey(
         "self", 
