@@ -12,9 +12,14 @@ class Category(models.Model):
     """
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=255, unique=True, null=True)
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)    
     parent = models.ForeignKey(
-        "self", on_delete=models.CASCADE, 
-        related_name="children", null=True, blank=True
+        "self", 
+        on_delete=models.CASCADE, 
+        related_name="children", 
+        null=True, 
+        blank=True,
+        help_text="Optional parent category for hierarchical structure.",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
