@@ -148,8 +148,19 @@ class ProductImage(models.Model):
     )
     image = models.ImageField(upload_to="products/gallery/")
     is_primary = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ["-is_primary"]
 
+    def save(self, *args, **kwargs):
+        # Ensure only one primary image
+        if self.is_primary:
+            ProductImage.objects.filter(product=self.product).update(is_primary=False)
+        super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.product.name} Image"
 
 
 class Review(models.Model):
