@@ -75,7 +75,6 @@ class Product(models.Model):
 
     # 🖼️ Media
     thumbnail = models.ImageField(upload_to="products/thumbnails/", blank=True, null=True)
-    images = models.JSONField(default=list, blank=True)  # e.g. ["img1.jpg", "img2.jpg"]
 
     # 🕒 Metadata
     created_at = models.DateTimeField(auto_now_add=True)
