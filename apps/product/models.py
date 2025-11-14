@@ -140,6 +140,17 @@ class ProductSpecification(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.key}: {self.value}"
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="gallery"
+    )
+    image = models.ImageField(upload_to="products/gallery/")
+    is_primary = models.BooleanField(default=False)
+
+
+
 
 class Review(models.Model):
     """
