@@ -1,21 +1,13 @@
 from rest_framework import serializers
-from django.db.models import Avg, Count
+from django.db.models import Avg
 from apps.product.models import Category, Product, ProductSpecification, Review
 from cloudinary.utils import cloudinary_url
 
-# 🏷 CATEGORY SERIALIZER
+
+# ================================
+# CATEGORY SERIALIZER
+# ================================
 class CategorySerializer(serializers.ModelSerializer):
-    """
-    Serializes category with support for nested children.
-    Example:
-    {
-        "name": "Laptops",
-        "slug": "laptops",
-        "children": [
-            { "name": "Gaming Laptops", ... }
-        ]
-    }
-    """
     children = serializers.SerializerMethodField()
 
     class Meta:
@@ -23,29 +15,24 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "slug", "parent", "children"]
 
     def get_children(self, obj):
-        """Recursively serialize subcategories."""
         if obj.children.exists():
             return CategorySerializer(obj.children.all(), many=True).data
         return []
 
 
-# ⚙️ PRODUCT SPECIFICATION SERIALIZER
+# ================================
+# PRODUCT SPECIFICATION SERIALIZER
+# ================================
 class ProductSpecificationSerializer(serializers.ModelSerializer):
-    """
-    Serializes product technical details.
-    Example:
-    { "key": "RAM", "value": "16GB DDR5" }
-    """
-
     class Meta:
         model = ProductSpecification
         fields = ["key", "value"]
 
-# ⭐ REVIEW SERIALIZER
+
+# ================================
+# REVIEW SERIALIZER
+# ================================
 class ReviewSerializer(serializers.ModelSerializer):
-    """
-    Serializes product reviews with username and rating info.
-    """
     username = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
@@ -61,7 +48,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_at", "is_verified_purchase"]
 
-# 🛍 PRODUCT SERIALIZER
+
+# ================================
+# PRODUCT SERIALIZER (FINAL + CLEAN)
+# ================================
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     specifications = ProductSpecificationSerializer(many=True, read_only=True)
@@ -73,7 +63,7 @@ class ProductSerializer(serializers.ModelSerializer):
     avg_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
 
-    # Convert Cloudinary IDs to URLs
+    # Image URL helpers
     thumbnail_url = serializers.SerializerMethodField()
     images_url = serializers.SerializerMethodField()
 
@@ -108,9 +98,9 @@ class ProductSerializer(serializers.ModelSerializer):
             "created_at",
         ]
 
-    # ==========================
-    # Computed fields
-    # ==========================
+    # ================================
+    # COMPUTED FIELDS
+    # ================================
     def get_discount_amount(self, obj):
         return obj.discount_amount
 
@@ -124,9 +114,9 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_review_count(self, obj):
         return obj.reviews.filter(is_approved=True).count()
 
-    # ==========================
-    # Image URL Builders
-    # ==========================
+    # ================================
+    # IMAGE URL HELPERS
+    # ================================
     def get_thumbnail_url(self, obj):
         if obj.thumbnail:
             url, _ = cloudinary_url(obj.thumbnail.name)
@@ -134,74 +124,10 @@ class ProductSerializer(serializers.ModelSerializer):
         return None
 
     def get_images_url(self, obj):
-        """
-        Convert list of Cloudinary public IDs to full URLs.
-        """
         if not obj.images:
             return []
-
         urls = []
         for public_id in obj.images:
             url, _ = cloudinary_url(public_id)
             urls.append(url)
         return urls
-
-    """
-    Main product serializer with nested category, specifications, and reviews.
-    Adds computed fields like final_price, discount_amount, avg_rating, and review_count.
-    """
-
-    category = CategorySerializer(read_only=True)
-    specifications = ProductSpecificationSerializer(many=True, read_only=True)
-    reviews = ReviewSerializer(many=True, read_only=True)
-
-    # Computed fields
-    final_price = serializers.SerializerMethodField()
-    discount_amount = serializers.SerializerMethodField()
-    avg_rating = serializers.SerializerMethodField()
-    review_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = [
-            "id",
-            "sku",
-            "name",
-            "slug",
-            "description",
-            "brand",
-            "category",
-            "price",
-            "old_price",
-            "discount_percentage",
-            "discount_amount",
-            "final_price",
-            "stock",
-            "is_available",
-            "warranty",
-            "free_shipping",
-            "expected_delivery",
-            "thumbnail",
-            "images",
-            "specifications",
-            "reviews",
-            "avg_rating",
-            "review_count",
-            "created_at",
-        ]
-        
-     # 🧮 Computed methods
-    def get_discount_amount(self, obj):
-        return obj.discount_amount
-
-    def get_final_price(self, obj):
-        return obj.final_price
-
-    def get_avg_rating(self, obj):
-        """Calculate average rating dynamically."""
-        avg = obj.reviews.aggregate(avg=Avg("rating"))["avg"]
-        return round(avg, 1) if avg else 0.0
-
-    def get_review_count(self, obj):
-        """Count total approved reviews."""
-        return obj.reviews.filter(is_approved=True).count()
