@@ -118,6 +118,9 @@ class ProductSerializer(serializers.ModelSerializer):
     # IMAGE URL HELPERS
     # ================================
     def get_thumbnail_url(self, obj):
+        """
+        helper to get thumbnai urls
+        """
         if obj.thumbnail:
             url, _ = cloudinary_url(obj.thumbnail.name)
             return url
