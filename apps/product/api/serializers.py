@@ -3,7 +3,6 @@ from django.db.models import Avg
 from apps.product.models import Category, Product, ProductSpecification, Review
 from cloudinary.utils import cloudinary_url
 
-
 # ================================
 # CATEGORY SERIALIZER
 # ================================
@@ -15,6 +14,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "slug", "parent", "children"]
 
     def get_children(self, obj):
+        # Recursive serialization of child categories
         if obj.children.exists():
             return CategorySerializer(obj.children.all(), many=True).data
         return []
