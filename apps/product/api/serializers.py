@@ -131,3 +131,21 @@ class ProductSerializer(serializers.ModelSerializer):
             url, _ = cloudinary_url(public_id)
             urls.append(url)
         return urls
+
+class ProductReadSerializer(serializers.ModelSerializer):
+    thumbnail_url = serializers.SerializerMethodField()
+    images_urls = serializers.SerializerMethodField()
+    specifications = ProductSpecificationSerializer(many=True, read_only=True)
+    reviews = ReviewSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            "id","sku","name","slug","description","brand","category",
+            "price","old_price","discount_percentage","discount_amount","final_price",
+            "stock","is_available","warranty","free_shipping","expected_delivery",
+            "thumbnail_public_id","thumbnail_url","images","images_urls",
+            "specifications","reviews","created_at",
+        ]
+
+
