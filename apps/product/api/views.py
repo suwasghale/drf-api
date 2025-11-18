@@ -265,6 +265,10 @@ class ProductViewSet(viewsets.ModelViewSet):
         cache.delete(f"product_detail:{product.slug}")
         cache.clear()
         return Response({"detail": "ok"})
+    
+   def partial_update(self, request, *args, **kwargs):
+        # similar to create — support replacing images and thumbnail
+        return super().partial_update(request, *args, **kwargs)
 
 
 # ⚙️ PRODUCT SPECIFICATION VIEWSET
