@@ -148,4 +148,7 @@ class ProductReadSerializer(serializers.ModelSerializer):
             "specifications","reviews","created_at",
         ]
 
+    def get_thumbnail_url(self, obj):
+        return obj.thumbnail_url() if obj.thumbnail_public_id else None
+
 
