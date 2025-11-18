@@ -151,4 +151,5 @@ class ProductReadSerializer(serializers.ModelSerializer):
     def get_thumbnail_url(self, obj):
         return obj.thumbnail_url() if obj.thumbnail_public_id else None
 
-
+    def get_images_urls(self, obj):
+        return obj.images_urls() if obj.images else []
