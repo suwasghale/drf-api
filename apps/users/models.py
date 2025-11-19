@@ -17,8 +17,12 @@ class User(AbstractUser):
     profile_image = models.ImageField(upload_to="users/", blank=True, null=True)
 
     is_email_verified = models.BooleanField(default=False)
+
     failed_login_attempts = models.PositiveIntegerField(default=0)
     last_failed_login_attempt = models.DateTimeField(null=True, blank=True)
+
+    is_locked = models.BooleanField(default=False)
+    lock_expires_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.username
