@@ -73,6 +73,8 @@ class UserActivityLog(models.Model):
     browser = models.CharField(max_length=255, null=True, blank=True)
     # 
     location = models.CharField(max_length=255, null=True, blank=True)
+    session_id = models.CharField(max_length=255, null=True, blank=True)
+    
     extra_data = models.JSONField(default=dict, blank=True)
 
     outcome = models.CharField(
