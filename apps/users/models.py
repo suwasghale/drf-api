@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password
 # Create your models here.
 class User(AbstractUser):
     """
@@ -33,6 +34,16 @@ class PasswordHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_history')
     password_hash = models.CharField(max_length=128)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.password_hash.startswith("pbkdf2"):
+            self.password_hash = make_password(self.password_hash)
+
+        super().save(*args, **kwargs)
+
+        history = PasswordHistory.objects.filter(user=self.user)
+        if history.count() > 5:
+            history.order_by('-timestamp')[5:].delete()
 
     def __str__(self):
         return f"{self.user.username} - Password Changed at {self.timestamp}"
