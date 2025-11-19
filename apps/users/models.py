@@ -61,6 +61,7 @@ class UserActivityLog(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
     action = models.CharField(max_length=255)
+    action_type = models.CharField(max_length=50, choices=ActionTypes.choices)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     # 🧠 Additional metadata
