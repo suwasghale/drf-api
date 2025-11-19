@@ -50,6 +50,15 @@ class PasswordHistory(models.Model):
 
 
 class UserActivityLog(models.Model):
+    class ActionTypes(models.TextChoices):
+        LOGIN = "LOGIN", "Login"
+        LOGOUT = "LOGOUT", "Logout"
+        FAILED_LOGIN = "FAILED_LOGIN", "Failed Login"
+        PASSWORD_RESET = "PASSWORD_RESET", "Password Reset"
+        EMAIL_VERIFICATION = "EMAIL_VERIFICATION", "Email Verification"
+        UPDATE_PROFILE = "UPDATE_PROFILE", "Updated Profile"
+        PASSWORD_CHANGE = "PASSWORD_CHANGE", "Password Change"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
     action = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
