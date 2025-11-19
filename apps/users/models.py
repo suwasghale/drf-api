@@ -65,7 +65,7 @@ class UserActivityLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     # 🧠 Additional metadata
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True, unpack_ipv4=True)
     user_agent = models.TextField(null=True, blank=True)
     # 
     device = models.CharField(max_length=255, null=True, blank=True)
@@ -74,7 +74,7 @@ class UserActivityLog(models.Model):
     # 
     location = models.CharField(max_length=255, null=True, blank=True)
     session_id = models.CharField(max_length=255, null=True, blank=True)
-    
+
     extra_data = models.JSONField(default=dict, blank=True)
 
     outcome = models.CharField(
