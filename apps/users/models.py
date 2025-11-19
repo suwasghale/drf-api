@@ -14,6 +14,8 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=50, choices=Roles.choices, default=Roles.USER)    
     display_name = models.CharField(max_length=255, blank=True, null=True)
+    profile_image = models.ImageField(upload_to="users/", blank=True, null=True)
+
     is_email_verified = models.BooleanField(default=False)
     failed_login_attempts = models.PositiveIntegerField(default=0)
     last_failed_login_attempt = models.DateTimeField(null=True, blank=True)
