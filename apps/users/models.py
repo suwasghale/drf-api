@@ -24,6 +24,9 @@ class User(AbstractUser):
     is_locked = models.BooleanField(default=False)
     lock_expires_at = models.DateTimeField(null=True, blank=True)
 
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+
     def __str__(self):
         return self.username
 class PasswordHistory(models.Model):
