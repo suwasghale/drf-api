@@ -12,6 +12,7 @@ class User(AbstractUser):
         VENDOR = "VENDOR", "Vendor"
         STAFF = "STAFF", "Staff"
         SUPERADMIN = "SUPERADMIN", "Superadmin"
+        
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=50, choices=Roles.choices, default=Roles.USER)    
     display_name = models.CharField(max_length=255, blank=True, null=True)
