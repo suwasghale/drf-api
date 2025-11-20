@@ -52,8 +52,8 @@ class PasswordHistory(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - Password changed on {self.timestamp}"
-
 class UserActivityLog(models.Model):
+
     class ActionTypes(models.TextChoices):
         LOGIN = "LOGIN", "Login"
         LOGOUT = "LOGOUT", "Logout"
@@ -64,21 +64,16 @@ class UserActivityLog(models.Model):
         PASSWORD_CHANGE = "PASSWORD_CHANGE", "Password Change"
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
-    action = models.CharField(max_length=255)
     action_type = models.CharField(max_length=50, choices=ActionTypes.choices)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    # 🧠 Additional metadata
     ip_address = models.GenericIPAddressField(null=True, blank=True, unpack_ipv4=True)
     user_agent = models.TextField(null=True, blank=True)
-    # 
     device = models.CharField(max_length=255, null=True, blank=True)
     os = models.CharField(max_length=255, null=True, blank=True)
     browser = models.CharField(max_length=255, null=True, blank=True)
-    # 
     location = models.CharField(max_length=255, null=True, blank=True)
     session_id = models.CharField(max_length=255, null=True, blank=True)
-
     extra_data = models.JSONField(default=dict, blank=True)
 
     outcome = models.CharField(
@@ -92,12 +87,8 @@ class UserActivityLog(models.Model):
     )
 
     class Meta:
-        indexes = [
-            models.Index(fields=['user', 'timestamp']),
-        ]
         ordering = ['-timestamp']
-        verbose_name = "User Activity Log"
-        verbose_name_plural = "User Activity Logs"
+        indexes = [models.Index(fields=['user', 'timestamp'])]
 
     def __str__(self):
-        return f"{self.user.username} - {self.action} at {self.timestamp}"
+        return f"{self.user.email} - {self.action_type}"
