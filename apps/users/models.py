@@ -44,13 +44,14 @@ class PasswordHistory(models.Model):
 
         super().save(*args, **kwargs)
 
-        history = PasswordHistory.objects.filter(user=self.user)
+        # Keep last 5 passwords only
+        history = PasswordHistory.objects.filter(user=self.user).order_by('-timestamp')
         if history.count() > 5:
-            history.order_by('-timestamp')[5:].delete()
+            to_delete = history[5:]
+            PasswordHistory.objects.filter(id__in=[p.id for p in to_delete]).delete()
 
     def __str__(self):
-        return f"{self.user.username} - Password Changed at {self.timestamp}"
-
+        return f"{self.user.email} - Password changed on {self.timestamp}"
 
 class UserActivityLog(models.Model):
     class ActionTypes(models.TextChoices):
