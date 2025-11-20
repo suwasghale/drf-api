@@ -1,32 +1,29 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.hashers import make_password
-# Create your models here.
+from django.utils import timezone
+
 class User(AbstractUser):
-    """
-    Custom User Model extending Django's AbstractUser. 
-    We can add extra fields as needed.
-    """
+
     class Roles(models.TextChoices):
         USER = "USER", "User"
         VENDOR = "VENDOR", "Vendor"
         STAFF = "STAFF", "Staff"
         SUPERADMIN = "SUPERADMIN", "Superadmin"
-        
+
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=50, choices=Roles.choices, default=Roles.USER)    
+    role = models.CharField(max_length=50, choices=Roles.choices, default=Roles.USER)
     display_name = models.CharField(max_length=255, blank=True, null=True)
     profile_image = models.ImageField(upload_to="users/", blank=True, null=True)
 
+    # Verification & security
     is_email_verified = models.BooleanField(default=False)
-
     failed_login_attempts = models.PositiveIntegerField(default=0)
     last_failed_login_attempt = models.DateTimeField(null=True, blank=True)
-
     is_locked = models.BooleanField(default=False)
     lock_expires_at = models.DateTimeField(null=True, blank=True)
 
-    # Soft delete fields
+    # Soft delete
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
@@ -34,7 +31,8 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["username"]
 
     def __str__(self):
-        return self.username
+        return f"{self.email} ({self.username})"
+
 class PasswordHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_history')
     password_hash = models.CharField(max_length=128)
