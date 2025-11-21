@@ -36,8 +36,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=50)
-    password = serializers.CharField(max_length=255,write_only=True)
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
