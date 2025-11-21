@@ -40,10 +40,16 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
+
         token["username"] = user.username
         token["email"] = user.email
+        token["role"] = user.role
         token["is_email_verified"] = user.is_email_verified
+        token["is_locked"] = user.is_locked
+
         return token
+
