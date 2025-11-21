@@ -19,13 +19,21 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, max_length=255)
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name']
-    
+
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        password = validated_data.pop("password")
+        user = User.objects.create_user(**validated_data, password=password)
+
+        # Log password history
+        PasswordHistory.objects.create(user=user, password_hash=password)
+
+        return user
+
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=50)
