@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model, authenticate, update_session_aut
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
+from django.contrib.auth.tokens import default_token_generator as token_generator
+
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
