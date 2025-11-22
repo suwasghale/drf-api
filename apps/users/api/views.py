@@ -487,3 +487,27 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(users, many=True)
         return Response({"status": "success", "users": serializer.data})
 
+
+# -----------------------------
+# AdminUserViewSet: admin-only operations
+# -----------------------------
+class AdminUserViewSet(viewsets.ModelViewSet):
+    """
+    Admin operations for user management.
+    """
+    queryset = User.objects.all().order_by("-date_joined")
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    @action(detail=True, methods=["post"], url_path="activate", permission_classes=[IsAdminUser])
+    def activate_user(self, request, pk=None):
+        user = self.get_object()
+        user.is_active = True
+        user.is_deleted = False
+        user.deleted_at = None
+        user.save(update_fields=["is_active", "is_deleted", "deleted_at"])
+        log_user_activity(request.user, "admin_activate_user", request=request, extra_data={"target_user": user.id})
+        return Response({"status": "success", "message": "User activated"})
+
+
