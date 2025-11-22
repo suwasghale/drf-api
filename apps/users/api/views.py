@@ -515,3 +515,18 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         users = User.objects.only('id', 'username', 'email', 'is_email_verified', 'display_name').all()
         serializer = UserSerializer(users, many=True)
         return Response({"status": "success", "users": serializer.data})
+
+
+# -----------------------------
+# SecurityViewSet: session/device listing, lock/unlock utilities (optional)
+# -----------------------------
+class SecurityViewSet(viewsets.GenericViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=["get"], url_path="sessions")
+    def list_sessions(self, request):
+        # OPTIONAL: requires tracking sessions/outstanding tokens
+        tokens = OutstandingToken.objects.filter(user=request.user)
+        token_info = [{"id": str(t.id), "created": t.created_at} for t in tokens]
+        return Response({"status": "success", "sessions": token_info})
+
