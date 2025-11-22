@@ -530,3 +530,18 @@ class SecurityViewSet(viewsets.GenericViewSet):
         token_info = [{"id": str(t.id), "created": t.created_at} for t in tokens]
         return Response({"status": "success", "sessions": token_info})
 
+    @action(detail=False, methods=["post"], url_path="unlock-user", permission_classes=[IsAdminUser])
+    def unlock_user(self, request):
+        user_id = request.data.get("user_id")
+        if not user_id:
+            return Response({"status": "error", "message": "user_id required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(pk=user_id)
+            user.is_locked = False
+            user.failed_login_attempts = 0
+            user.lock_expires_at = None
+            user.save(update_fields=["is_locked", "failed_login_attempts", "lock_expires_at"])
+            log_user_activity(request.user, "admin_unlock_user", request=request, extra_data={"target_user": user.id})
+            return Response({"status": "success", "message": "User unlocked"})
+        except User.DoesNotExist:
+            return Response({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
