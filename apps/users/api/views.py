@@ -510,4 +510,8 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         log_user_activity(request.user, "admin_activate_user", request=request, extra_data={"target_user": user.id})
         return Response({"status": "success", "message": "User activated"})
 
-
+    @action(detail=False, methods=["get"], url_path="list-users", permission_classes=[IsAdminUser])
+    def list_users(self, request):
+        users = User.objects.only('id', 'username', 'email', 'is_email_verified', 'display_name').all()
+        serializer = UserSerializer(users, many=True)
+        return Response({"status": "success", "users": serializer.data})
