@@ -217,6 +217,10 @@ CACHES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    "apps.users.auth_backends.EmailOrUsernameBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 
 # email-smtp
