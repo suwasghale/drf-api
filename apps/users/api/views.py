@@ -1,53 +1,53 @@
-# from django.conf import settings
-# from django.db import transaction
-# from django.urls import reverse
-# from django.core.exceptions import ValidationError as DjangoValidationError
+from django.conf import settings
+from django.db import transaction
+from django.urls import reverse
+from django.core.exceptions import ValidationError as DjangoValidationError
 
-# from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash, login
-# from django.contrib.auth.password_validation import validate_password
-# from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash, login
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
-# from django.contrib.auth.tokens import default_token_generator as token_generator
+from django.contrib.auth.tokens import default_token_generator as token_generator
 
-# from django.utils import timezone
-# from django.utils.encoding import force_bytes, force_str
-# from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils import timezone
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-# from rest_framework import status, filters, viewsets
-# from rest_framework.decorators import action
-# from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-# from rest_framework.response import Response
-# from rest_framework.throttling import ScopedRateThrottle
+from rest_framework import status, filters, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
-# from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
-# from rest_framework_simplejwt.backends import TokenBackend
-# from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-# from rest_framework_simplejwt.token_blacklist.models import (
-#     OutstandingToken, 
-#     BlacklistedToken
-#     )
+from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
+from rest_framework_simplejwt.backends import TokenBackend
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework_simplejwt.token_blacklist.models import (
+    OutstandingToken, 
+    BlacklistedToken
+    )
 
 
-# from apps.users.api.serializers import (
-#     RegisterSerializer, 
-#     LoginSerializer, 
-#     UserSerializer
-# )
+from apps.users.api.serializers import (
+    RegisterSerializer, 
+    LoginSerializer, 
+    UserSerializer
+)
 
-# from apps.users.utils.email import (
-#     send_verification_email,  
-#     send_password_reset_email 
-# )
+from apps.users.utils.email import (
+    send_verification_email,  
+    send_password_reset_email 
+)
 
-# from apps.users.utils.audit import log_user_activity
+from apps.users.utils.audit import log_user_activity
 
-# from apps.users.utils.password_history import (
-#     save_password_history, 
-#     check_password_history
-# )
+from apps.users.utils.password_history import (
+    save_password_history, 
+    check_password_history
+)
 
-# User = get_user_model()
-# token_generator = PasswordResetTokenGenerator()
+User = get_user_model()
+token_generator = PasswordResetTokenGenerator()
 
 
 # class UserViewSet(viewsets.ModelViewSet):
