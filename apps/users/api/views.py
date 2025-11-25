@@ -547,7 +547,6 @@ token_generator = PasswordResetTokenGenerator()
 #             return Response({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-# apps/users/api/views.py
 from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
@@ -583,7 +582,6 @@ from apps.users.utils.audit import log_user_activity
 from apps.users.utils.password_history import save_password_history, check_password_history
 
 User = get_user_model()
-
 
 # -----------------------------
 # AuthViewSet: register, email verify, login, logout, password flows
