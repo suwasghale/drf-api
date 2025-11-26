@@ -48,7 +48,7 @@ class IsVendorOrStaffOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         # Write permissions are only allowed to vendors and staff.        
-        return request.user and (request.user.is_staff or request.user.role == 'VENDOR')
+        return request.user.is_authenticated and request.user.role == 'VENDOR'
 
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request.
