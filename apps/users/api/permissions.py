@@ -1,88 +1,125 @@
 from rest_framework import permissions
 
+
+class RoleRequired(permissions.BasePermission):
+    """
+    Base class for role-based permissions.
+    """
+    required_roles = []
+
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated and
+            getattr(request.user, "role", None) in self.required_roles
+        )
+
+
 class IsSuperAdmin(permissions.BasePermission):
     """
     Allows access only to superadmins.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.is_superuser
+        return request.user.is_authenticated and request.user.is_superuser
+
 
 class IsStaff(permissions.BasePermission):
     """
-    Allows access only to staff (admins).
+    Allows access only to staff members.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.is_staff
+        return request.user.is_authenticated and request.user.is_staff
 
-class IsVendor(permissions.BasePermission):
+
+class IsVendor(RoleRequired):
     """
     Allows access only to vendors.
     """
-    def has_permission(self, request, view):
-        return request.user and request.user.role == 'VENDOR'
+    required_roles = ['VENDOR']
 
-class IsUser(permissions.BasePermission):
+
+class IsUser(RoleRequired):
     """
     Allows access only to regular users.
     """
-    def has_permission(self, request, view):
-        return request.user and request.user.role == 'USER'
+    required_roles = ['USER']
+
 
 class IsOwner(permissions.BasePermission):
     """
-    Object-level permission to allow owners of an object to edit it.
-    Assumes the model instance has a 'user' or 'owner' attribute.
+    Object-level permission allowing owners to update their own objects.
     """
     def has_object_permission(self, request, view, obj):
-        # Read-only permissions are allowed for any request.
         if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.user == request.user
+
+        if not request.user.is_authenticated:
+            return False
+
+        owner = (
+            getattr(obj, 'user', None) or
+            getattr(obj, 'owner', None)
+        )
+
+        return owner == request.user
+
 
 class IsVendorOrStaffOrReadOnly(permissions.BasePermission):
     """
-    Allows authenticated vendors and staff to write, while allowing all others read-only.
+    Vendors and staff can modify; others have read-only access.
     """
     def has_permission(self, request, view):
-        # Read-only access is allowed for all users (including anonymous).
         if request.method in permissions.SAFE_METHODS:
             return True
-        # Write permissions are only allowed to vendors and staff.        
-        return request.user.is_authenticated and request.user.role == 'VENDOR'
+
+        return (
+            request.user.is_authenticated and
+            (request.user.is_staff or getattr(request.user, "role", None) == 'VENDOR')
+        )
 
     def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed to any request.
         if request.method in permissions.SAFE_METHODS:
             return True
-        # Staff can edit any product.
-        if request.user.is_staff:
+
+        user = request.user
+
+        if user.is_staff:
             return True
-        # Vendors can only edit their own products.
-        return obj.vendor == request.user
+
+        if getattr(user, "role", None) == 'VENDOR':
+            return getattr(obj, 'vendor', None) == user
+
+        return False
+
 
 class IsStaffOrSuperAdmin(permissions.BasePermission):
     """
-    Allows access only to staff or superusers.
+    Allows access to staff or superadmins.
     """
     def has_permission(self, request, view):
-        return request.user and (request.user.is_staff or request.user.is_superuser)
+        return request.user.is_authenticated and (
+            request.user.is_staff or request.user.is_superuser
+        )
+
 
 class CanViewOrder(permissions.BasePermission):
     """
-    Object-level permission for viewing orders.
+    Object-level permission: users see their own orders,
+    vendors see orders containing their products,
+    staff/superadmins see all.
     """
     def has_object_permission(self, request, view, obj):
-        # Staff and superadmins can view any order.
-        if request.user.is_staff or request.user.is_superuser:
+        user = request.user
+
+        if not user.is_authenticated:
+            return False
+
+        if user.is_staff or user.is_superuser:
             return True
-        # Regular users can only view their own orders.
-        if request.user.role == 'USER':
-            return obj.user == request.user
-        # Vendors can view orders containing their products.
-        if request.user.role == 'VENDOR':
-            # This logic assumes the Order model has a related 'items' field
-            # and the Product model has a 'vendor' foreign key.
-            for item in obj.items.all():
-                if item.product.vendor == request.user:
-                    return True
+
+        if getattr(user, "role", None) == 'USER':
+            return obj.user == user
+
+        if user.role == 'VENDOR':
+            return obj.items.filter(product__vendor=user).exists()
+
         return False
