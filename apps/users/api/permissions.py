@@ -1,6 +1,5 @@
 from rest_framework import permissions
 
-
 class RoleRequired(permissions.BasePermission):
     """
     Base class for role-based permissions.
@@ -46,21 +45,23 @@ class IsUser(RoleRequired):
 
 class IsOwner(permissions.BasePermission):
     """
-    Object-level permission allowing owners to update their own objects.
+    Object-level permission to allow owners of an object to edit it.
+    Checks multiple common ownership patterns.
     """
+
+    owner_attrs = ["user", "owner", "created_by"]
+
     def has_object_permission(self, request, view, obj):
+        # Allow read-only access to anyone.
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if not request.user.is_authenticated:
-            return False
+        # Check for multiple possible owner fields.
+        for attr in self.owner_attrs:
+            if hasattr(obj, attr):
+                return getattr(obj, attr) == request.user
 
-        owner = (
-            getattr(obj, 'user', None) or
-            getattr(obj, 'owner', None)
-        )
-
-        return owner == request.user
+        return False
 
 
 class IsVendorOrStaffOrReadOnly(permissions.BasePermission):
