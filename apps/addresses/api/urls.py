@@ -1,16 +1,21 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from apps.addresses.api.views import CountryViewSet, StateViewSet, AddressViewSet
 
-# Create router instance
+from apps.addresses.api.views import (
+    CountryViewSet,
+    StateViewSet,
+    AddressViewSet,
+)
+
+# DRF Router instance
 router = DefaultRouter()
 
-# Register endpoints
-router.register(r'countries', CountryViewSet, basename='country')
-router.register(r'states', StateViewSet, basename='state')
-router.register(r'addresses', AddressViewSet, basename='address')
+# Register viewsets
+router.register("countries", CountryViewSet, basename="countries")
+router.register("states", StateViewSet, basename="states")
+router.register("addresses", AddressViewSet, basename="addresses")
 
-# Combine into urlpatterns
+# Export all router URLs
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]
