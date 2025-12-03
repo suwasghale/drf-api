@@ -13,7 +13,7 @@ from apps.addresses.api.serializers import (
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from apps.core.permissions import (
+from core.permissions import (
     IsOwner,
     IsStaffOrSuperAdmin,
 )
