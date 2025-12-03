@@ -64,12 +64,15 @@ class AddressViewSet(viewsets.ModelViewSet):
     # Permission Handling
     # ---------------------------------------------------------------------
     def get_permissions(self):
-
-        # Public endpoints handled separately
-        if self.action in ["default", "set_default", "list", "retrieve", "create", "update", "partial_update", "destroy"]:
+        if self.action in ["default", "set_default", "list", "retrieve", "create"]:
             return [IsAuthenticated()]
 
+        # For updates, deletes → enforce ownership OR staff/admin
+        if self.action in ["update", "partial_update", "destroy"]:
+            return [IsAuthenticated(), IsOwner()]
+
         return super().get_permissions()
+
 
     def get_queryset(self):
         """
