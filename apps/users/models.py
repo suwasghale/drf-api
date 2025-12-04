@@ -48,6 +48,23 @@ class User(AbstractUser):
     def is_normal_user(self):
         return self.role == self.Roles.USER
 
+    def save(self, *args, **kwargs):
+        # Sync Django built-in flags with custom roles
+        if self.role == self.Roles.SUPERADMIN:
+            self.is_superuser = True
+            self.is_staff = True
+
+        elif self.role == self.Roles.STAFF:
+            self.is_staff = True
+
+        else:
+            # For USER and VENDOR
+            # Leave Django is_staff/is_superuser unchanged
+            pass
+
+        super().save(*args, **kwargs)
+
+
 
 class PasswordHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_history')
