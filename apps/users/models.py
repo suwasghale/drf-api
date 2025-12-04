@@ -32,6 +32,22 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.username})"
+    
+        # --------------------------------------------------------
+    # Role Helpers (Used Throughout the System)
+    # --------------------------------------------------------
+    def is_superadmin(self):
+        return self.role == self.Roles.SUPERADMIN or self.is_superuser
+
+    def is_staff_user(self):
+        return self.role == self.Roles.STAFF or self.is_staff
+
+    def is_vendor(self):
+        return self.role == self.Roles.VENDOR
+
+    def is_normal_user(self):
+        return self.role == self.Roles.USER
+
 
 class PasswordHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_history')
