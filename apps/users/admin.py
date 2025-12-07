@@ -108,6 +108,16 @@ class UserAdmin(BaseUserAdmin):
             return False
 
         return super().has_change_permission(request, obj)
+    
+    def get_readonly_fields(self, request, obj=None):
+        # Start with default readonly fields
+        ro = list(super().get_readonly_fields(request, obj))
+
+        # Staff cannot modify privilege-related fields
+        if not request.user.is_superuser:
+            ro += ["role", "is_superuser", "is_staff", "groups", "user_permissions"]
+
+        return tuple(ro)
 
 
 # ✅ User Activity Log (read-only)
