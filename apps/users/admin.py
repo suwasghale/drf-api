@@ -155,6 +155,17 @@ class UserActivityLogAdmin(admin.ModelAdmin):
         # Normal users/vendors: see their own logs only
         return qs.filter(user=request.user)
 
+    def has_view_permission(self, request, obj=None):
+        if obj:
+            # Staff cannot view logs of superadmins
+            if obj.user.role == "SUPERADMIN" and not request.user.is_superuser:
+                return False
+
+            # Normal users/vendors cannot view others' logs
+            if not request.user.is_staff and obj.user != request.user:
+                return False
+
+        return super().has_view_permission(request, obj)
 
 # ✅ Password History (read-only)
 @admin.register(PasswordHistory)
