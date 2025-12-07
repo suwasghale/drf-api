@@ -141,6 +141,20 @@ class UserActivityLogAdmin(admin.ModelAdmin):
     list_per_page = 30
     show_full_result_count = False
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        # Superadmin sees all logs
+        if request.user.is_superuser:
+            return qs
+
+        # Staff cannot see logs of superadmins
+        if request.user.is_staff:
+            return qs.exclude(user__role="SUPERADMIN")
+
+        # Normal users/vendors: see their own logs only
+        return qs.filter(user=request.user)
+
 
 # ✅ Password History (read-only)
 @admin.register(PasswordHistory)
