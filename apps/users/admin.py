@@ -83,6 +83,20 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        # Superuser: see all
+        if request.user.is_superuser:
+            return qs
+
+        # Staff: cannot see superadmins
+        if request.user.is_staff:
+            return qs.exclude(role="SUPERADMIN")
+
+        # Vendors/normal users: can only see themselves
+        return qs.filter(id=request.user.id)
+
 
 # ✅ User Activity Log (read-only)
 @admin.register(UserActivityLog)
