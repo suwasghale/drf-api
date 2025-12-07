@@ -96,6 +96,18 @@ class UserAdmin(BaseUserAdmin):
 
         # Vendors/normal users: can only see themselves
         return qs.filter(id=request.user.id)
+    
+    def has_change_permission(self, request, obj=None):
+        # Normal users or vendors cannot change other accounts
+        if not request.user.is_staff and not request.user.is_superuser:
+            if obj and obj.id != request.user.id:
+                return False
+
+        # Staff cannot change superadmin accounts
+        if obj and obj.role == "SUPERADMIN" and not request.user.is_superuser:
+            return False
+
+        return super().has_change_permission(request, obj)
 
 
 # ✅ User Activity Log (read-only)
