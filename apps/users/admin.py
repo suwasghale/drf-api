@@ -180,3 +180,17 @@ class PasswordHistoryAdmin(admin.ModelAdmin):
     show_full_result_count = False
     verbose_name_plural = "Password Change History"
     verbose_name = "Password Change History"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        # Superadmin: full access
+        if request.user.is_superuser:
+            return qs
+
+        # Staff cannot see superadmin password history
+        if request.user.is_staff:
+            return qs.exclude(user__role="SUPERADMIN")
+
+        # Normal/Vendor sees only own password history
+        return qs.filter(user=request.user)
