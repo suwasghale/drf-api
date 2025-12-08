@@ -194,3 +194,15 @@ class PasswordHistoryAdmin(admin.ModelAdmin):
 
         # Normal/Vendor sees only own password history
         return qs.filter(user=request.user)
+    
+        def has_view_permission(self, request, obj=None):
+        if obj:
+            # Staff cannot view superadmin password history
+            if obj.user.role == "SUPERADMIN" and not request.user.is_superuser:
+                return False
+
+            # Normal users/vendors cannot view other users' password history
+            if not request.user.is_staff and obj.user != request.user:
+                return False
+
+        return super().has_view_permission(request, obj)
