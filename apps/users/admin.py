@@ -201,31 +201,31 @@ class PasswordHistoryAdmin(admin.ModelAdmin):
     list_select_related = ("user",)
     list_per_page = 30
     show_full_result_count = False
-    verbose_name_plural = "Password Change History"
-    verbose_name = "Password Change History"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
-        # Superadmin: full access
         if request.user.is_superuser:
             return qs
 
-        # Staff cannot see superadmin password history
         if request.user.is_staff:
             return qs.exclude(user__role="SUPERADMIN")
 
-        # Normal/Vendor sees only own password history
         return qs.filter(user=request.user)
-    
+
     def has_view_permission(self, request, obj=None):
         if obj:
-            # Staff cannot view superadmin password history
             if obj.user.role == "SUPERADMIN" and not request.user.is_superuser:
                 return False
-
-            # Normal users/vendors cannot view other users' password history
             if not request.user.is_staff and obj.user != request.user:
                 return False
-
         return super().has_view_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
