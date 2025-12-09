@@ -141,6 +141,54 @@ class UserAdmin(BaseUserAdmin):
             del actions["delete_selected"]
         return actions
 
+@admin.register(UserActivityLog)
+class UserActivityLogAdmin(admin.ModelAdmin):
+    list_display = ("user", "action_type", "timestamp", "ip_address", "outcome")
+    list_filter = ("outcome", "timestamp", "user__role")
+    search_fields = ("user__username", "action_type", "ip_address", "location")
+    ordering = ("-timestamp",)
+    readonly_fields = (
+        "user",
+        "action_type",
+        "timestamp",
+        "ip_address",
+        "user_agent",
+        "location",
+        "outcome",
+        "extra_data",
+    )
+
+    list_per_page = 30
+    show_full_result_count = False
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_staff:
+            return qs.exclude(user__role="SUPERADMIN")
+
+        return qs.filter(user=request.user)
+
+    def has_view_permission(self, request, obj=None):
+        if obj:
+            if obj.user.role == "SUPERADMIN" and not request.user.is_superuser:
+                return False
+            if not request.user.is_staff and obj.user != request.user:
+                return False
+        return super().has_view_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
+
 
 # ✅ Password History (read-only)
 @admin.register(PasswordHistory)
