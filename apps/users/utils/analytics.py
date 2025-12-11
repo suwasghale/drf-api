@@ -15,3 +15,17 @@ def signups_last_n_days(n_days=30):
     )
     # return list of dicts or convert to day->count mapping
     return list(data)
+
+def failed_logins_last_n_days(n_days=30):
+    since = timezone.now() - timedelta(days=n_days)
+    qs = UserActivityLog.objects.filter(
+        action_type=UserActivityLog.ActionTypes.FAILED_LOGIN,
+        timestamp__gte=since
+    )
+    data = (
+        qs.annotate(day=TruncDay("timestamp"))
+          .values("day")
+          .annotate(count=Count("id"))
+          .order_by("day")
+    )
+    return list(data)
