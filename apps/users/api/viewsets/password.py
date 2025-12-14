@@ -1,5 +1,3 @@
-# apps/users/api/viewsets/password.py
-
 from django.db import transaction
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode

@@ -1,5 +1,3 @@
-# apps/users/api/viewsets/profile.py
-
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
