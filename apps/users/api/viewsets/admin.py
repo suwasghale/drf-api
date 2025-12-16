@@ -7,9 +7,12 @@ from django.contrib.auth import get_user_model
 from apps.users.api.serializers import UserSerializer
 from apps.users.utils.audit import log_user_activity
 
+from drf_spectacular.utils import extend_schema
+
+
 User = get_user_model()
 
-
+@extend_schema(tags=["Admin Users"])
 class AdminUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by("-date_joined")
     serializer_class = UserSerializer
