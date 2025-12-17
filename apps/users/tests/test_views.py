@@ -14,7 +14,7 @@ class UserMeAPITestCase(APITestCase):
             password='testpassword', 
             email='test@testuser.com')
         # actual url
-        self.me_url = reverse('users-me')
+        self.me_url = reverse('profile-me')
 
     def test_me_requires_authentication(self):
         """Ensure /me cannot be accessed without authentication"""
