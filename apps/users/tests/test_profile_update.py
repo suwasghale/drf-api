@@ -26,3 +26,17 @@ class UserProfileUpdateAPITestCase(APITestCase):
     def test_authentication_required(self):
         response = self.client.patch(self.url, {})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_can_update_allowed_fields(self):
+        self.authenticate()
+        payload = {
+            "first_name": "Suwas",
+            "last_name": "Ghale",
+            "display_name": "Suwas Dev"
+        }
+        response = self.client.patch(self.url, payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Suwas")
+        self.assertEqual(self.user.display_name, "Suwas Dev")
