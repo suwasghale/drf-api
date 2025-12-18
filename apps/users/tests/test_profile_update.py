@@ -40,3 +40,18 @@ class UserProfileUpdateAPITestCase(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Suwas")
         self.assertEqual(self.user.display_name, "Suwas Dev")
+
+    def test_user_cannot_update_protected_fields(self):
+        self.authenticate()
+        payload = {
+            "username": "hacked",
+            "role": "admin",
+            "is_staff": True,
+            "is_superuser": True
+        }
+        response = self.client.patch(self.url, payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.username, "hacked")
+        self.assertFalse(self.user.is_staff)
