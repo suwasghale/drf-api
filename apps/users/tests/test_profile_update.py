@@ -23,4 +23,6 @@ class UserProfileUpdateAPITestCase(APITestCase):
             HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
         )
 
-   
+    def test_authentication_required(self):
+        response = self.client.patch(self.url, {})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
