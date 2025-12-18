@@ -16,3 +16,11 @@ class UserProfileUpdateAPITestCase(APITestCase):
             password="TestPass123!"
         )
         self.url = reverse("profile-update-profile")  # adjust if needed
+
+    def authenticate(self):
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+   
