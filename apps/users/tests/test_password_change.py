@@ -34,3 +34,14 @@ class ChangePasswordAPITestCase(APITestCase):
             "new_password": "NewStrongPass123!"
         })
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_password_change_success(self):
+        self.authenticate()
+        response = self.client.post(self.url, {
+            "old_password": "OldPass123!",
+            "new_password": "NewStrongPass123!"
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewStrongPass123!"))
