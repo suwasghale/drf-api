@@ -22,3 +22,7 @@ class ChangePasswordAPITestCase(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
         )
+
+    def test_authentication_required(self):
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
