@@ -16,3 +16,9 @@ class ChangePasswordAPITestCase(APITestCase):
             password="OldPass123!"
         )
         self.url = reverse("profile-change-password")
+
+    def authenticate(self):
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
