@@ -35,3 +35,13 @@ class LoginSecurityAPITestCase(APITestCase):
 
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_locked)
+
+    def test_locked_account_cannot_login(self):
+        self.user.is_locked = True
+        self.user.save()
+
+        response = self.client.post(self.url, {
+            "identifier": "secureuser",
+            "password": "CorrectPass123!"
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
