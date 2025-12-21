@@ -16,3 +16,12 @@ class LoginSecurityAPITestCase(APITestCase):
         )
         self.url = reverse("auth-login")
 
+    def test_failed_login_increments_attempts(self):
+        for _ in range(3):
+            self.client.post(self.url, {
+                "identifier": "secureuser",
+                "password": "WrongPass"
+            })
+
+        self.user.refresh_from_db()
+        self.assertGreater(self.user.failed_login_attempts, 0)
