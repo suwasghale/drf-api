@@ -25,3 +25,13 @@ class LoginSecurityAPITestCase(APITestCase):
 
         self.user.refresh_from_db()
         self.assertGreater(self.user.failed_login_attempts, 0)
+
+    def test_account_locks_after_max_attempts(self):
+        for _ in range(5):
+            self.client.post(self.url, {
+                "identifier": "secureuser",
+                "password": "WrongPass"
+            })
+
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_locked)
