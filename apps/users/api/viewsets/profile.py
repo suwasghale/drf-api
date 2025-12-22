@@ -15,13 +15,19 @@ class ProfileViewSet(viewsets.GenericViewSet):
     def me(self, request):
         return Response(UserSerializer(request.user).data)
 
-    @action(detail=False, methods=["patch"])
-    def update(self, request):
-        serializer = UpdateProfileSerializer(request.user, data=request.data, partial=True)
+    @action(detail=False, methods=["patch"], url_path="update")
+    def update_profile(self, request):
+        serializer = UpdateProfileSerializer(
+            request.user,
+            data=request.data,
+            partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         log_user_activity(request.user, "update_profile", request=request)
         return Response(serializer.data)
+
 
     @action(detail=False, methods=["post"])
     def deactivate(self, request):
