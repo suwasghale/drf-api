@@ -39,7 +39,7 @@ urlpatterns = [
     path('api/v1/', include('apps.product.api.urls')),
 
     # users
-    path('api/v1/', include('apps.users.api.urls'), namespace='v1'),
+    path('api/v1/', include('apps.users.api.urls', namespace='v1')),
 
     # addresses
     path('api/v1/', include('apps.addresses.api.urls')),
