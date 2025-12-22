@@ -44,7 +44,11 @@ class Product(models.Model):
     Represents a single product in the store.
     Includes SKU, name, pricing, stock, media, warranty, etc.
     """
-    vendor = models.ForeignKey(User=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="products")
+    vendor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name="products"
+        )
 
     # 🏷️ Identification
     sku = models.CharField(max_length=100, unique=True, null=True, blank=True)  # e.g., MU12146
