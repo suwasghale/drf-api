@@ -10,7 +10,6 @@ from apps.users.utils.audit import log_user_activity
 
 User = get_user_model()
 
-
 class SecurityViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
