@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Local apps
-    'apps.product',
+    'apps.products',
     # 'apps.users',
     "apps.users.apps.UsersConfig",
     "apps.addresses",

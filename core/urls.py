@@ -42,7 +42,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # products
-    path('api/v1/', include('apps.product.api.urls')),
+    path('api/v1/', include('apps.products.api.urls')),
 
     # users
     path('api/v1/', include('apps.users.api.urls', namespace='v1')),
