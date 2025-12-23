@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from apps.product.models import Product, Category
+from apps.products.models import Product, Category
 from apps.cart.models import Cart, CartItem
 from apps.orders.models import Order, OrderItem
 

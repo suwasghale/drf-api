@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from apps.product.models import Product 
+from apps.products.models import Product 
 
 USER = settings.AUTH_USER_MODEL
 # Create your models

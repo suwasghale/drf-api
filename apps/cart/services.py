@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from .models import Cart, CartItem
-from apps.product.models import Product 
+from apps.products.models import Product 
 from django.db import transaction
 
 def get_or_create_cart(user):

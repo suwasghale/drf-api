@@ -29,7 +29,7 @@ class ProductPerformance(models.Model):
     """
     Tracks how each product performs in terms of sales and ratings.
     """
-    product = models.OneToOneField("product.Product", on_delete=models.CASCADE, related_name="performance")
+    product = models.OneToOneField("products.Product", on_delete=models.CASCADE, related_name="performance")
     total_sales = models.PositiveIntegerField(default=0)
     total_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)

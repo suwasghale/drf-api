@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.wishlist.models import Wishlist, WishlistItem
 from .serializers import WishlistSerializer
-from apps.product.models import Product
+from apps.products.models import Product
 
 class WishlistViewSet(viewsets.ModelViewSet):
     serializer_class = WishlistSerializer

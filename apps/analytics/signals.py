@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db import models
 from apps.orders.models import Order
 from apps.payments.models import Payment
-from apps.product.models import Review
+from apps.products.models import Review
 from apps.analytics.models import SalesReport, ProductPerformance, UserActivity
 
 
