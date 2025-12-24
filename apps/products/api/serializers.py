@@ -65,7 +65,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     # Image URL helpers
     thumbnail_url = serializers.SerializerMethodField()
-    images_url = serializers.SerializerMethodField()
+    gallery_urls = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -89,8 +89,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "expected_delivery",
             "thumbnail",
             "thumbnail_url",
-            "images",
-            "images_url",
+            "gallery",
+            "gallery_url",
             "specifications",
             "reviews",
             "avg_rating",
