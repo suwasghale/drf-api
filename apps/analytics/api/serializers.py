@@ -24,8 +24,8 @@ class SalesReportSerializer(serializers.ModelSerializer):
             "formatted_revenue",
             "average_order_value",
             "performance_summary",
-            "created_at",
-            "updated_at",
+            "time_since_update",
+
         ]
         read_only_fields = [
             "id",
