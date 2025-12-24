@@ -123,14 +123,13 @@ class ProductSerializer(serializers.ModelSerializer):
             return url
         return None
 
-    def get_images_url(self, obj):
-        if not obj.images:
-            return []
+    def get_gallery_urls(self, obj):
         urls = []
-        for public_id in obj.images:
-            url, _ = cloudinary_url(public_id)
+        for image in obj.gallery.all():
+            url, _ = cloudinary_url(image.image.name)
             urls.append(url)
         return urls
+
 
 class ProductReadSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
