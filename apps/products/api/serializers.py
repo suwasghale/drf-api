@@ -90,7 +90,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "thumbnail",
             "thumbnail_url",
             "gallery",
-            "gallery_url",
+            "gallery_urls",
             "specifications",
             "reviews",
             "avg_rating",
