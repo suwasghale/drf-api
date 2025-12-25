@@ -113,6 +113,7 @@ REST_FRAMEWORK.update({
         "login": "5/min",
         "email_verify": "3/min",
         "forgot_password": "3/min",
+        "product_browse": "1000/day",
     },
 })
 
