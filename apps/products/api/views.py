@@ -49,6 +49,7 @@ class ProductViewSet(viewsets.ModelViewSet):
       - search, filters, ordering, pagination
       - admin-only bulk stock updates (atomic + bulk_update)
     """
+   queryset = Product.objects.all()
    serializer_class = ProductSerializer
    lookup_field = "slug"
    pagination_class = StandardResultsSetPagination
